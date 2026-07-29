@@ -1,0 +1,504 @@
+[
+  {
+    "id": "swellpro-splashdrone-4",
+    "name": "SwellPro SplashDrone 4",
+    "brand": "SwellPro",
+    "category": "drones",
+    "subcategory": "Waterproof Drones",
+    "price": 2199,
+    "sku": "SP-SD4-STD",
+    "stock": 8,
+    "images": ["p-fishing-drone", "cat-drones", "hero"],
+    "description": "Fully waterproof modular multirotor built for open water. Lands and floats on the surface, swaps payloads in seconds and keeps flying in weather that grounds ordinary drones.",
+    "specifications": {
+      "Waterproof rating": "IP67 (floats and takes off from water)",
+      "Max flight time": "30 min",
+      "Max transmission": "1.6 km HD video",
+      "Payload capacity": "2 kg",
+      "Wind resistance": "Level 7",
+      "Battery": "6600 mAh intelligent LiPo"
+    },
+    "features": [
+      "Swappable waterproof camera and payload modules",
+      "Auto return-to-home and surface landing",
+      "Corrosion-resistant saltwater airframe",
+      "Remote payload release for bait and rescue lines"
+    ]
+  },
+  {
+    "id": "swellpro-fisherman-fd3",
+    "name": "SwellPro Fisherman FD3",
+    "brand": "SwellPro",
+    "category": "drones",
+    "subcategory": "Fishing Drones",
+    "price": 2599,
+    "sku": "SP-FD3-FSH",
+    "stock": 5,
+    "images": ["p-fishing-drone", "cat-drones"],
+    "description": "Purpose-built fishing drone with a dual bait release and a waterproof body engineered for surf launching and long shore casts.",
+    "specifications": {
+      "Waterproof rating": "IP67",
+      "Max flight time": "23 min",
+      "Payload capacity": "3 kg",
+      "Bait release": "Dual electronic release",
+      "Range": "1.6 km",
+      "Take-off weight": "3.6 kg"
+    },
+    "features": [
+      "Dual line release for two baits per flight",
+      "Sea-surface landing and take-off",
+      "Low-battery auto return with GPS lock",
+      "Night fishing LED beacons"
+    ]
+  },
+  {
+    "id": "swellpro-fd1-plus",
+    "name": "SwellPro FD1+",
+    "brand": "SwellPro",
+    "category": "drones",
+    "subcategory": "Fishing Drones",
+    "price": 1299,
+    "sku": "SP-FD1P",
+    "stock": 12,
+    "images": ["p-fishing-drone", "cat-drones"],
+    "description": "Compact entry-level waterproof fishing drone. Light enough to carry down the beach, tough enough to land in the shore break.",
+    "specifications": {
+      "Waterproof rating": "IP66",
+      "Max flight time": "18 min",
+      "Payload capacity": "1 kg",
+      "Range": "1 km",
+      "Weight": "1.4 kg"
+    },
+    "features": [
+      "Single bait release",
+      "One-key return to home",
+      "Foldable arms for transport",
+      "Beginner-friendly flight assist"
+    ]
+  },
+  {
+    "id": "fimi-mini-3",
+    "name": "FIMI Mini 3",
+    "brand": "FIMI",
+    "category": "drones",
+    "subcategory": "Camera Drones",
+    "price": 549,
+    "sku": "FM-MINI3",
+    "stock": 24,
+    "images": ["p-mini-drone", "cat-drones"],
+    "description": "Sub-250 g travel drone with a 3-axis gimbal and 4K capture. Slips into a jacket pocket and flies in most regions licence-free.",
+    "specifications": {
+      "Weight": "249 g",
+      "Camera": "4K / 30fps, 1/2.6\" sensor",
+      "Gimbal": "3-axis mechanical",
+      "Max flight time": "38 min",
+      "Range": "9 km",
+      "Wind resistance": "Level 5"
+    },
+    "features": [
+      "Under 250 g regulatory class",
+      "Smart tracking and cinematic modes",
+      "Vertical shooting for social",
+      "Foldable pocket airframe"
+    ]
+  },
+  {
+    "id": "fimi-x8-mini-v2",
+    "name": "FIMI X8 Mini V2",
+    "brand": "FIMI",
+    "category": "drones",
+    "subcategory": "Camera Drones",
+    "price": 649,
+    "sku": "FM-X8MV2",
+    "stock": 17,
+    "images": ["p-mini-drone", "cat-drones"],
+    "description": "Lightweight all-rounder with an upgraded sensor and stronger wind resistance for coastal and mountain shoots.",
+    "specifications": {
+      "Weight": "258 g",
+      "Camera": "4K HDR, Sony sensor",
+      "Max flight time": "31 min",
+      "Range": "9 km",
+      "Wind resistance": "Level 6"
+    },
+    "features": [
+      "HDR video and night mode",
+      "Dual battery quick swap",
+      "Precision hover with dual GPS",
+      "Panorama and hyperlapse"
+    ]
+  },
+  {
+    "id": "fimi-x8-se-2022-v2",
+    "name": "FIMI X8 SE 2022 V2",
+    "brand": "FIMI",
+    "category": "drones",
+    "subcategory": "Camera Drones",
+    "price": 799,
+    "sku": "FM-X8SE22V2",
+    "stock": 9,
+    "images": ["p-mini-drone", "cat-drones"],
+    "description": "Long-range prosumer platform with obstacle sensing and a 35-minute endurance envelope for survey and content work.",
+    "specifications": {
+      "Weight": "790 g",
+      "Camera": "4K / 100 Mbps",
+      "Max flight time": "35 min",
+      "Range": "10 km",
+      "Obstacle sensing": "Forward and downward"
+    },
+    "features": [
+      "10 km HD transmission",
+      "Obstacle avoidance",
+      "Waypoint and orbit missions",
+      "Aluminium carrying case option"
+    ]
+  },
+  {
+    "id": "fimi-x8-pro",
+    "name": "FIMI X8 Pro",
+    "brand": "FIMI",
+    "category": "drones",
+    "subcategory": "Mapping Drones",
+    "price": 1399,
+    "sku": "FM-X8PRO",
+    "stock": 6,
+    "images": ["p-mini-drone", "cat-drones"],
+    "description": "Professional mapping and inspection drone with a triple-camera array, RTK-ready positioning and mission planning software.",
+    "specifications": {
+      "Camera": "Wide + tele + zoom array",
+      "Max flight time": "42 min",
+      "Range": "15 km",
+      "Positioning": "RTK compatible",
+      "Obstacle sensing": "Omnidirectional"
+    },
+    "features": [
+      "Photogrammetry mission planning",
+      "Centimetre-grade RTK positioning",
+      "Triple camera inspection array",
+      "Hot-swap intelligent batteries"
+    ]
+  },
+  {
+    "id": "fimi-manta-vtol",
+    "name": "FIMI Manta VTOL",
+    "brand": "FIMI",
+    "category": "drones",
+    "subcategory": "Mapping Drones",
+    "price": 4899,
+    "sku": "FM-MANTA-VTOL",
+    "stock": 3,
+    "images": ["cat-drones", "p-mini-drone"],
+    "description": "Fixed-wing VTOL platform for large-area agricultural and survey mapping. Vertical launch, fixed-wing efficiency, hours of coverage.",
+    "specifications": {
+      "Type": "Fixed-wing VTOL",
+      "Endurance": "100 min",
+      "Coverage": "Up to 400 ha per flight",
+      "Cruise speed": "20 m/s",
+      "Payload": "Interchangeable mapping sensors"
+    },
+    "features": [
+      "Vertical take-off, no runway required",
+      "Multispectral payload support",
+      "Autonomous corridor mapping",
+      "Ruggedised field case included"
+    ]
+  },
+  {
+    "id": "agri-spray-drone-x16",
+    "name": "AgriGrid X16 Spraying Drone",
+    "brand": "OddGrid",
+    "category": "drones",
+    "subcategory": "Agricultural Drones",
+    "price": 8499,
+    "sku": "OG-AGX16",
+    "stock": 2,
+    "images": ["cat-drones", "hero"],
+    "description": "16-litre agricultural spraying platform with terrain-following radar and automated field routing for precision crop treatment.",
+    "specifications": {
+      "Tank capacity": "16 L",
+      "Spray width": "6.5 m",
+      "Coverage": "12 ha / hour",
+      "Radar": "Terrain following + obstacle",
+      "Battery": "Dual 14 000 mAh smart packs"
+    },
+    "features": [
+      "Automated field boundary mapping",
+      "Variable-rate spraying",
+      "Foldable transport frame",
+      "IP67 washable body"
+    ]
+  },
+  {
+    "id": "drone-carbon-props",
+    "name": "Carbon Fibre Propeller Set",
+    "brand": "OddGrid",
+    "category": "drones",
+    "subcategory": "Propellers",
+    "price": 69,
+    "sku": "OG-PROP-CF",
+    "stock": 60,
+    "images": ["cat-drones"],
+    "description": "Balanced carbon fibre propellers for quieter, more efficient flight. Set of four with quick-release hubs.",
+    "specifications": {
+      "Material": "3K carbon fibre",
+      "Set": "4 propellers (2 CW, 2 CCW)",
+      "Mount": "Quick release",
+      "Noise reduction": "Up to 3 dB"
+    },
+    "features": ["Factory balanced", "Lower vibration footage", "Extended flight efficiency"]
+  },
+  {
+    "id": "drone-intelligent-battery",
+    "name": "Intelligent Flight Battery",
+    "brand": "OddGrid",
+    "category": "drones",
+    "subcategory": "Batteries",
+    "price": 189,
+    "sku": "OG-BATT-IF",
+    "stock": 34,
+    "images": ["cat-drones"],
+    "description": "Smart LiPo flight battery with cell-level monitoring, self-discharge protection and a fuel gauge on the pack.",
+    "specifications": {
+      "Capacity": "5000 mAh",
+      "Voltage": "15.4 V",
+      "Cycles": "300+",
+      "Charge time": "60 min"
+    },
+    "features": ["Cell balancing", "Storage self-discharge", "LED capacity gauge"]
+  },
+  {
+    "id": "power-station-300w",
+    "name": "300W Portable Power Station",
+    "brand": "OddGrid",
+    "category": "power",
+    "subcategory": "Portable Power Stations",
+    "price": 329,
+    "sku": "OG-PS-300",
+    "stock": 40,
+    "images": ["cat-power", "hero"],
+    "description": "Grab-and-go lithium power station for laptops, routers, cameras and lighting. Silent, fume-free and airline-sized.",
+    "specifications": {
+      "Output": "300 W continuous / 600 W surge",
+      "Capacity": "288 Wh LiFePO4",
+      "Outlets": "2 AC, 2 USB-C PD, 2 USB-A, 12 V DC",
+      "Recharge": "AC 2.5 h / Solar 3 h",
+      "Weight": "3.9 kg"
+    },
+    "features": [
+      "Pure sine wave inverter",
+      "Solar input up to 200 W",
+      "Pass-through UPS charging",
+      "3000-cycle LiFePO4 cells"
+    ]
+  },
+  {
+    "id": "power-station-600w",
+    "name": "600W Portable Power Station",
+    "brand": "OddGrid",
+    "category": "power",
+    "subcategory": "Portable Power Stations",
+    "price": 549,
+    "sku": "OG-PS-600",
+    "stock": 26,
+    "images": ["cat-power", "hero"],
+    "description": "Mid-size station that carries a fridge, TV and full home office through a load-shedding block without a sound.",
+    "specifications": {
+      "Output": "600 W continuous / 1200 W surge",
+      "Capacity": "576 Wh LiFePO4",
+      "Outlets": "3 AC, 2 USB-C PD 100 W, 2 USB-A",
+      "Recharge": "AC 1.8 h / Solar 2.5 h",
+      "Weight": "6.8 kg"
+    },
+    "features": [
+      "<20 ms UPS switchover",
+      "App monitoring over Bluetooth",
+      "400 W solar input",
+      "Quiet adaptive cooling"
+    ]
+  },
+  {
+    "id": "power-station-1000w",
+    "name": "1000W Portable Power Station",
+    "brand": "OddGrid",
+    "category": "power",
+    "subcategory": "Portable Power Stations",
+    "price": 899,
+    "sku": "OG-PS-1000",
+    "stock": 14,
+    "images": ["cat-power", "hero"],
+    "description": "Flagship portable station for households and mobile production crews. Expandable with external battery packs.",
+    "specifications": {
+      "Output": "1000 W continuous / 2000 W surge",
+      "Capacity": "1024 Wh LiFePO4",
+      "Outlets": "4 AC, 2 USB-C PD 100 W, 2 USB-A, 12 V",
+      "Recharge": "AC 1.5 h / Solar 2 h",
+      "Expansion": "+1024 Wh external pack"
+    },
+    "features": [
+      "Expandable capacity",
+      "X-Boost for 1500 W appliances",
+      "Full app control and scheduling",
+      "10-year design life"
+    ]
+  },
+  {
+    "id": "solar-panel-200w",
+    "name": "200W Foldable Solar Panel",
+    "brand": "OddGrid",
+    "category": "power",
+    "subcategory": "Solar Panels",
+    "price": 379,
+    "sku": "OG-SOL-200F",
+    "stock": 22,
+    "images": ["p-solar", "cat-power"],
+    "description": "Monocrystalline foldable array with an integrated kickstand and weatherproof shell. Folds to briefcase size.",
+    "specifications": {
+      "Peak output": "200 W",
+      "Efficiency": "23.4%",
+      "Cells": "Monocrystalline ETFE",
+      "Weather rating": "IP67",
+      "Folded size": "62 x 54 x 4 cm"
+    },
+    "features": ["Adjustable kickstand", "MC4 and XT60 leads", "Durable ETFE coating"]
+  },
+  {
+    "id": "solar-panel-400w",
+    "name": "400W Solar Panel",
+    "brand": "OddGrid",
+    "category": "power",
+    "subcategory": "Solar Panels",
+    "price": 649,
+    "sku": "OG-SOL-400",
+    "stock": 11,
+    "images": ["p-solar", "cat-power"],
+    "description": "High-yield rigid panel for permanent rooftop and off-grid cabin installs, with a 25-year output warranty.",
+    "specifications": {
+      "Peak output": "400 W",
+      "Efficiency": "22.8%",
+      "Voltage": "37.2 V Vmp",
+      "Frame": "Anodised aluminium",
+      "Warranty": "25-year output"
+    },
+    "features": ["Half-cut cell design", "Hail-rated tempered glass", "Low-light performance"]
+  },
+  {
+    "id": "mppt-60a",
+    "name": "60A MPPT Charge Controller",
+    "brand": "OddGrid",
+    "category": "power",
+    "subcategory": "Charge Controllers",
+    "price": 289,
+    "sku": "OG-MPPT-60",
+    "stock": 19,
+    "images": ["p-inverter", "cat-power"],
+    "description": "Fast-tracking MPPT controller that squeezes every usable watt out of your array, with a clear monitoring display.",
+    "specifications": {
+      "Rated current": "60 A",
+      "Max PV input": "150 V",
+      "Efficiency": "98.6%",
+      "Battery support": "LiFePO4, AGM, gel, flooded"
+    },
+    "features": ["Adaptive MPPT tracking", "Bluetooth monitoring", "Temperature compensation"]
+  },
+  {
+    "id": "inverter-pure-sine-3000",
+    "name": "3000W Pure Sine Wave Inverter",
+    "brand": "OddGrid",
+    "category": "power",
+    "subcategory": "Inverters",
+    "price": 719,
+    "sku": "OG-INV-3000",
+    "stock": 15,
+    "images": ["p-inverter", "cat-power"],
+    "description": "Clean grid-quality AC for sensitive electronics, medical equipment and motors, with full protection circuitry.",
+    "specifications": {
+      "Continuous power": "3000 W",
+      "Surge": "6000 W",
+      "Input": "24 V DC",
+      "THD": "<3%",
+      "Cooling": "Variable-speed fan"
+    },
+    "features": ["Pure sine output", "Overload and thermal protection", "Remote control panel"]
+  },
+  {
+    "id": "lifepo4-battery-100ah",
+    "name": "LiFePO4 Battery Pack 100Ah",
+    "brand": "OddGrid",
+    "category": "power",
+    "subcategory": "Battery Systems",
+    "price": 899,
+    "sku": "OG-LFP-100",
+    "stock": 18,
+    "images": ["p-inverter", "cat-power"],
+    "description": "Deep-cycle 12.8 V lithium bank with an integrated BMS. Drop-in replacement for lead acid at a third of the weight.",
+    "specifications": {
+      "Capacity": "100 Ah / 1280 Wh",
+      "Voltage": "12.8 V",
+      "Cycles": "6000+ at 80% DoD",
+      "BMS": "Integrated 100 A",
+      "Weight": "11 kg"
+    },
+    "features": ["Series and parallel capable", "Low-temperature charge cutoff", "10-year warranty"]
+  },
+  {
+    "id": "home-backup-kit",
+    "name": "Home Backup Power Kit",
+    "brand": "OddGrid",
+    "category": "power",
+    "subcategory": "Solar Kits",
+    "price": 2499,
+    "sku": "OG-KIT-HOME",
+    "stock": 7,
+    "images": ["cat-power", "p-solar"],
+    "description": "Complete household backup bundle: inverter, lithium bank, MPPT controller and mounting hardware, ready for installation.",
+    "specifications": {
+      "Inverter": "5 kW hybrid",
+      "Storage": "5.12 kWh LiFePO4",
+      "Solar ready": "Up to 6 kW PV",
+      "Switchover": "<10 ms"
+    },
+    "features": [
+      "Runs essential circuits for 8+ hours",
+      "Grid, solar and generator input",
+      "Installer documentation pack",
+      "Expandable battery stack"
+    ]
+  },
+  {
+    "id": "camping-solar-kit",
+    "name": "Camping Solar Kit",
+    "brand": "OddGrid",
+    "category": "power",
+    "subcategory": "Solar Kits",
+    "price": 749,
+    "sku": "OG-KIT-CAMP",
+    "stock": 20,
+    "images": ["p-solar", "cat-power"],
+    "description": "Everything needed to stay powered off-grid for a week: 600 W station, 200 W foldable panel, cables and a padded travel bag.",
+    "specifications": {
+      "Station": "600 W / 576 Wh",
+      "Panel": "200 W foldable",
+      "Recharge": "2.5 h in full sun",
+      "Pack weight": "13 kg"
+    },
+    "features": ["Silent fume-free power", "Weatherproof panel", "Padded transport case"]
+  },
+  {
+    "id": "ups-1500va",
+    "name": "1500VA Smart UPS System",
+    "brand": "OddGrid",
+    "category": "power",
+    "subcategory": "UPS Systems",
+    "price": 459,
+    "sku": "OG-UPS-1500",
+    "stock": 25,
+    "images": ["p-inverter", "cat-power"],
+    "description": "Line-interactive UPS for routers, servers and workstations, with pure sine output and network monitoring.",
+    "specifications": {
+      "Capacity": "1500 VA / 900 W",
+      "Transfer time": "<4 ms",
+      "Output": "Pure sine wave",
+      "Monitoring": "USB + network card slot"
+    },
+    "features": ["AVR voltage regulation", "Hot-swappable batteries", "Rack or tower mounting"]
+  }
+]

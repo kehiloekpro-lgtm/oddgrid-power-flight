@@ -9,8 +9,20 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as PowerSolutionsRouteImport } from './routes/power-solutions'
+import { Route as DronesRouteImport } from './routes/drones'
 import { Route as IndexRouteImport } from './routes/index'
 
+const PowerSolutionsRoute = PowerSolutionsRouteImport.update({
+  id: '/power-solutions',
+  path: '/power-solutions',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DronesRoute = DronesRouteImport.update({
+  id: '/drones',
+  path: '/drones',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -19,28 +31,50 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/drones': typeof DronesRoute
+  '/power-solutions': typeof PowerSolutionsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/drones': typeof DronesRoute
+  '/power-solutions': typeof PowerSolutionsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/drones': typeof DronesRoute
+  '/power-solutions': typeof PowerSolutionsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '/drones' | '/power-solutions'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/drones' | '/power-solutions'
+  id: '__root__' | '/' | '/drones' | '/power-solutions'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  DronesRoute: typeof DronesRoute
+  PowerSolutionsRoute: typeof PowerSolutionsRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/power-solutions': {
+      id: '/power-solutions'
+      path: '/power-solutions'
+      fullPath: '/power-solutions'
+      preLoaderRoute: typeof PowerSolutionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/drones': {
+      id: '/drones'
+      path: '/drones'
+      fullPath: '/drones'
+      preLoaderRoute: typeof DronesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -53,17 +87,9 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  DronesRoute: DronesRoute,
+  PowerSolutionsRoute: PowerSolutionsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
