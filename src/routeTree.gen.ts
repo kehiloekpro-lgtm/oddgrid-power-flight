@@ -9,7 +9,10 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TermsRouteImport } from './routes/terms'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as QuoteRouteImport } from './routes/quote'
+import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as PowerSolutionsRouteImport } from './routes/power-solutions'
 import { Route as DronesRouteImport } from './routes/drones'
 import { Route as ContactRouteImport } from './routes/contact'
@@ -18,9 +21,24 @@ import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProductsProductIdRouteImport } from './routes/products.$productId'
 
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const QuoteRoute = QuoteRouteImport.update({
   id: '/quote',
   path: '/quote',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PowerSolutionsRoute = PowerSolutionsRouteImport.update({
@@ -66,7 +84,10 @@ export interface FileRoutesByFullPath {
   '/contact': typeof ContactRoute
   '/drones': typeof DronesRoute
   '/power-solutions': typeof PowerSolutionsRoute
+  '/privacy': typeof PrivacyRoute
   '/quote': typeof QuoteRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/terms': typeof TermsRoute
   '/products/$productId': typeof ProductsProductIdRoute
 }
 export interface FileRoutesByTo {
@@ -76,7 +97,10 @@ export interface FileRoutesByTo {
   '/contact': typeof ContactRoute
   '/drones': typeof DronesRoute
   '/power-solutions': typeof PowerSolutionsRoute
+  '/privacy': typeof PrivacyRoute
   '/quote': typeof QuoteRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/terms': typeof TermsRoute
   '/products/$productId': typeof ProductsProductIdRoute
 }
 export interface FileRoutesById {
@@ -87,7 +111,10 @@ export interface FileRoutesById {
   '/contact': typeof ContactRoute
   '/drones': typeof DronesRoute
   '/power-solutions': typeof PowerSolutionsRoute
+  '/privacy': typeof PrivacyRoute
   '/quote': typeof QuoteRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/terms': typeof TermsRoute
   '/products/$productId': typeof ProductsProductIdRoute
 }
 export interface FileRouteTypes {
@@ -99,7 +126,10 @@ export interface FileRouteTypes {
     | '/contact'
     | '/drones'
     | '/power-solutions'
+    | '/privacy'
     | '/quote'
+    | '/sitemap.xml'
+    | '/terms'
     | '/products/$productId'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -109,7 +139,10 @@ export interface FileRouteTypes {
     | '/contact'
     | '/drones'
     | '/power-solutions'
+    | '/privacy'
     | '/quote'
+    | '/sitemap.xml'
+    | '/terms'
     | '/products/$productId'
   id:
     | '__root__'
@@ -119,7 +152,10 @@ export interface FileRouteTypes {
     | '/contact'
     | '/drones'
     | '/power-solutions'
+    | '/privacy'
     | '/quote'
+    | '/sitemap.xml'
+    | '/terms'
     | '/products/$productId'
   fileRoutesById: FileRoutesById
 }
@@ -130,17 +166,41 @@ export interface RootRouteChildren {
   ContactRoute: typeof ContactRoute
   DronesRoute: typeof DronesRoute
   PowerSolutionsRoute: typeof PowerSolutionsRoute
+  PrivacyRoute: typeof PrivacyRoute
   QuoteRoute: typeof QuoteRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  TermsRoute: typeof TermsRoute
   ProductsProductIdRoute: typeof ProductsProductIdRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/quote': {
       id: '/quote'
       path: '/quote'
       fullPath: '/quote'
       preLoaderRoute: typeof QuoteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/power-solutions': {
@@ -202,9 +262,22 @@ const rootRouteChildren: RootRouteChildren = {
   ContactRoute: ContactRoute,
   DronesRoute: DronesRoute,
   PowerSolutionsRoute: PowerSolutionsRoute,
+  PrivacyRoute: PrivacyRoute,
   QuoteRoute: QuoteRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
+  TermsRoute: TermsRoute,
   ProductsProductIdRoute: ProductsProductIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
