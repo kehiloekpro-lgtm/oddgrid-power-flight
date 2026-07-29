@@ -9,12 +9,20 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as QuoteRouteImport } from './routes/quote'
 import { Route as PowerSolutionsRouteImport } from './routes/power-solutions'
 import { Route as DronesRouteImport } from './routes/drones'
+import { Route as ContactRouteImport } from './routes/contact'
 import { Route as BrandsRouteImport } from './routes/brands'
+import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProductsProductIdRouteImport } from './routes/products.$productId'
 
+const QuoteRoute = QuoteRouteImport.update({
+  id: '/quote',
+  path: '/quote',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PowerSolutionsRoute = PowerSolutionsRouteImport.update({
   id: '/power-solutions',
   path: '/power-solutions',
@@ -25,9 +33,19 @@ const DronesRoute = DronesRouteImport.update({
   path: '/drones',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ContactRoute = ContactRouteImport.update({
+  id: '/contact',
+  path: '/contact',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const BrandsRoute = BrandsRouteImport.update({
   id: '/brands',
   path: '/brands',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AboutRoute = AboutRouteImport.update({
+  id: '/about',
+  path: '/about',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -43,55 +61,88 @@ const ProductsProductIdRoute = ProductsProductIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
   '/brands': typeof BrandsRoute
+  '/contact': typeof ContactRoute
   '/drones': typeof DronesRoute
   '/power-solutions': typeof PowerSolutionsRoute
+  '/quote': typeof QuoteRoute
   '/products/$productId': typeof ProductsProductIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
   '/brands': typeof BrandsRoute
+  '/contact': typeof ContactRoute
   '/drones': typeof DronesRoute
   '/power-solutions': typeof PowerSolutionsRoute
+  '/quote': typeof QuoteRoute
   '/products/$productId': typeof ProductsProductIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
   '/brands': typeof BrandsRoute
+  '/contact': typeof ContactRoute
   '/drones': typeof DronesRoute
   '/power-solutions': typeof PowerSolutionsRoute
+  '/quote': typeof QuoteRoute
   '/products/$productId': typeof ProductsProductIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/about'
     | '/brands'
+    | '/contact'
     | '/drones'
     | '/power-solutions'
+    | '/quote'
     | '/products/$productId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/brands' | '/drones' | '/power-solutions' | '/products/$productId'
+  to:
+    | '/'
+    | '/about'
+    | '/brands'
+    | '/contact'
+    | '/drones'
+    | '/power-solutions'
+    | '/quote'
+    | '/products/$productId'
   id:
     | '__root__'
     | '/'
+    | '/about'
     | '/brands'
+    | '/contact'
     | '/drones'
     | '/power-solutions'
+    | '/quote'
     | '/products/$productId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AboutRoute: typeof AboutRoute
   BrandsRoute: typeof BrandsRoute
+  ContactRoute: typeof ContactRoute
   DronesRoute: typeof DronesRoute
   PowerSolutionsRoute: typeof PowerSolutionsRoute
+  QuoteRoute: typeof QuoteRoute
   ProductsProductIdRoute: typeof ProductsProductIdRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/quote': {
+      id: '/quote'
+      path: '/quote'
+      fullPath: '/quote'
+      preLoaderRoute: typeof QuoteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/power-solutions': {
       id: '/power-solutions'
       path: '/power-solutions'
@@ -106,11 +157,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DronesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/contact': {
+      id: '/contact'
+      path: '/contact'
+      fullPath: '/contact'
+      preLoaderRoute: typeof ContactRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/brands': {
       id: '/brands'
       path: '/brands'
       fullPath: '/brands'
       preLoaderRoute: typeof BrandsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/about': {
+      id: '/about'
+      path: '/about'
+      fullPath: '/about'
+      preLoaderRoute: typeof AboutRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -132,9 +197,12 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AboutRoute: AboutRoute,
   BrandsRoute: BrandsRoute,
+  ContactRoute: ContactRoute,
   DronesRoute: DronesRoute,
   PowerSolutionsRoute: PowerSolutionsRoute,
+  QuoteRoute: QuoteRoute,
   ProductsProductIdRoute: ProductsProductIdRoute,
 }
 export const routeTree = rootRouteImport
