@@ -14,6 +14,7 @@ import {
   relatedProducts,
   stockLabel,
   WHATSAPP_URL,
+  type Product,
 } from "@/lib/products";
 import { useQuote } from "@/lib/quote-store";
 import { cn } from "@/lib/utils";
@@ -69,7 +70,7 @@ export const Route = createFileRoute("/products/$productId")({
 });
 
 function ProductPage() {
-  const { product } = Route.useLoaderData();
+  const { product } = Route.useLoaderData() as { product: Product };
   const images = productImages(product);
   const [index, setIndex] = useState(0);
   const [zoom, setZoom] = useState<{ x: number; y: number } | null>(null);
