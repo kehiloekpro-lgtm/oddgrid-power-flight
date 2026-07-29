@@ -66,9 +66,9 @@ function Index() {
           alt="Portable power station and professional drone in a dark studio"
           width={1920}
           height={1088}
-          className="absolute inset-0 -z-10 h-full w-full object-cover opacity-60"
+          className="absolute inset-0 -z-20 h-full w-full object-cover"
         />
-        <div className="bg-hero absolute inset-0 -z-10" />
+        <div className="absolute inset-0 -z-10 bg-linear-to-r from-background via-background/70 to-background/10" />
         <div className="mx-auto flex min-h-[86vh] max-w-7xl flex-col justify-center px-4 py-28 sm:px-6">
           <motion.p
             initial={{ opacity: 0, y: 12 }}

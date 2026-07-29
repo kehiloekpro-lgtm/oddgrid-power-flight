@@ -58,7 +58,7 @@ export function Header() {
         scrolled ? "glass-strong py-2" : "py-4",
       )}
     >
-      <div className="mx-auto grid max-w-7xl grid-cols-[minmax(0,1fr)_auto] items-center gap-4 px-4 sm:px-6">
+      <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 sm:px-6">
         <Link to="/" className="flex min-w-0 items-center gap-2">
           <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-primary/15 text-primary ring-1 ring-primary/30">
             <Zap className="size-5" />
@@ -66,7 +66,7 @@ export function Header() {
           <span className="truncate text-lg font-semibold tracking-tight">OddGrid</span>
         </Link>
 
-        <nav className="col-span-2 hidden items-center gap-1 lg:col-span-1 lg:flex lg:justify-center">
+        <nav className="hidden items-center gap-1 lg:flex">
           {nav.map((item) => (
             <Link
               key={item.to}

@@ -30,9 +30,9 @@ export function CatalogPage({
           alt={title}
           width={1200}
           height={900}
-          className="absolute inset-0 -z-10 h-full w-full object-cover opacity-35"
+          className="absolute inset-0 -z-20 h-full w-full object-cover opacity-40"
         />
-        <div className="bg-hero absolute inset-0 -z-10" />
+        <div className="absolute inset-0 -z-10 bg-linear-to-r from-background via-background/80 to-background/40" />
         <div className="mx-auto max-w-7xl px-4 py-24 sm:px-6">
           <h1 className="max-w-3xl text-4xl font-semibold sm:text-5xl">{title}</h1>
           <p className="mt-4 max-w-2xl text-muted-foreground">{intro}</p>
