@@ -1,24 +1,22 @@
 import productsData from "@/data/products.json";
 
-import heroImg from "@/assets/hero.jpg";
-import catPowerImg from "@/assets/cat-power.jpg";
-import catDronesImg from "@/assets/cat-drones.jpg";
-import solarImg from "@/assets/p-solar.jpg";
+import heroImg from "@/assets/hero-solar-cooling.jpg";
+import catPowerImg from "@/assets/cat-backup-power.jpg";
+import catRefrigerationImg from "@/assets/cat-refrigeration.jpg";
+import catSolarHvacImg from "@/assets/cat-solar-hvac.jpg";
 import inverterImg from "@/assets/p-inverter.jpg";
-import fishingDroneImg from "@/assets/p-fishing-drone.jpg";
-import miniDroneImg from "@/assets/p-mini-drone.jpg";
 
 export const imageMap: Record<string, string> = {
   hero: heroImg,
+  "hero-solar-cooling": heroImg,
   "cat-power": catPowerImg,
-  "cat-drones": catDronesImg,
-  "p-solar": solarImg,
+  "cat-backup-power": catPowerImg,
+  "cat-refrigeration": catRefrigerationImg,
+  "cat-solar-hvac": catSolarHvacImg,
   "p-inverter": inverterImg,
-  "p-fishing-drone": fishingDroneImg,
-  "p-mini-drone": miniDroneImg,
 };
 
-export type ProductCategory = "power" | "drones";
+export type ProductCategory = "sub-zero" | "solar-hvac" | "back-up-power" | "hybrid-inverters";
 
 export interface Product {
   id: string;
@@ -27,6 +25,7 @@ export interface Product {
   category: ProductCategory;
   subcategory: string;
   price: number;
+  quoteOnly?: boolean;
   sku: string;
   stock: number;
   images: string[];
@@ -65,25 +64,16 @@ export const stockLabel = (stock: number) =>
       ? { label: `Low stock · ${stock} left`, tone: "low" as const }
       : { label: "In stock", tone: "in" as const };
 
-export const powerCategories = [
-  "Portable Power Stations",
-  "Solar Panels",
-  "Inverters",
-  "Battery Systems",
-  "Solar Kits",
-  "Charge Controllers",
-  "UPS Systems",
+export const subZeroCategories = [
+  "Solar Refrigerators",
+  "Solar Freezers",
+  "Portable Solar Coolers",
 ];
 
-export const droneCategories = [
-  "Camera Drones",
-  "Waterproof Drones",
-  "Mapping Drones",
-  "Agricultural Drones",
-  "Fishing Drones",
-  "Drone Accessories",
-  "Batteries",
-  "Propellers",
-];
+export const solarHvacCategories = ["Portable Solar Air-Cons"];
+
+export const backupPowerCategories = ["Portable Power Stations"];
+
+export const hybridInverterCategories = ["Hybrid Inverters"];
 
 export const WHATSAPP_URL = "https://wa.me/10000000000";
