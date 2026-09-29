@@ -60,8 +60,10 @@ export function Footer() {
         <FooterColumn
           title="Categories"
           links={[
-            { label: "Power Solutions", to: "/power-solutions" },
-            { label: "Drones", to: "/drones" },
+            { label: "Sub-zero", to: "/sub-zero" },
+  { label: "Solar HVAC", to: "/solar-hvac" },
+  { label: "Back-up power", to: "/back-up-power" },
+  { label: "Hybrid Inverters", to: "/hybrid-inverters" },
             { label: "Request Quote", to: "/quote" },
           ]}
         />
