@@ -2,9 +2,9 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import {
   ArrowRight,
-  BatteryCharging,
+  Snowflake,
+  Wind,
   Headphones,
-  Plane,
   ShieldCheck,
   Sparkles,
   Truck,
@@ -13,26 +13,28 @@ import {
 import { Button } from "@/components/ui/button";
 import { ProductCard } from "@/components/site/ProductCard";
 import { Reveal } from "@/components/site/Reveal";
-import { byCategory, droneCategories, powerCategories } from "@/lib/products";
-import heroImg from "@/assets/hero.jpg";
-import catPower from "@/assets/cat-power.jpg";
-import catDrones from "@/assets/cat-drones.jpg";
+import { backupPowerCategories, byCategory, solarHvacCategories, subZeroCategories } from "@/lib/products";
+import heroImg from "@/assets/hero-solar-cooling.jpg";
+import catPower from "@/assets/cat-refrigeration.jpg";
+import catDrones from "@/assets/cat-solar-hvac.jpg";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "OddGrid — Power Your World. Explore Without Limits." },
+      { title: "OddGrid — Solar Refrigeration & Portable Cooling" },
       {
         name: "description",
         content:
-          "Premium backup power systems and high-performance drones for professionals, businesses, creators, farmers and adventurers.",
+          "Solar refrigerators, freezers, portable coolers and solar air-cons, backed by portable power stations.",
       },
-      { property: "og:title", content: "OddGrid — Power Your World. Explore Without Limits." },
+      { property: "og:title", content: "OddGrid — Solar Refrigeration & Portable Cooling" },
       {
         property: "og:description",
-        content: "Premium backup power and professional drone technology, curated by OddGrid.",
+        content: "Solar cooling that keeps running when the grid does not.",
       },
       { property: "og:url", content: "/" },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
     links: [{ rel: "canonical", href: "/" }],
   }),
@@ -49,21 +51,21 @@ const why = [
   {
     icon: Headphones,
     title: "Technical Support",
-    copy: "Specialists who fly and install what they sell.",
+    copy: "Specialists who size and install what they sell.",
   },
   { icon: ShieldCheck, title: "Warranty", copy: "Full manufacturer warranty with local backing." },
 ];
 
 function Index() {
-  const drones = byCategory("drones").slice(0, 4);
-  const power = byCategory("power").slice(0, 4);
+  const cooling = byCategory("sub-zero").slice(0, 4);
+  const power = byCategory("back-up-power").slice(0, 4);
 
   return (
     <>
       <section className="relative isolate overflow-hidden">
         <img
           src={heroImg}
-          alt="Portable power station and professional drone in a dark studio"
+          alt="Solar refrigerator and portable cooler in a dark studio"
           width={1920}
           height={1088}
           className="absolute inset-0 -z-20 h-full w-full object-cover"
@@ -76,7 +78,7 @@ function Index() {
             transition={{ duration: 0.6 }}
             className="glass w-fit rounded-full px-4 py-1.5 text-xs tracking-[0.25em] uppercase"
           >
-            Freedom · Performance · Independence
+            Cold · Cool · Off-grid
           </motion.p>
           <motion.h1
             initial={{ opacity: 0, y: 24 }}
@@ -84,9 +86,9 @@ function Index() {
             transition={{ duration: 0.8, delay: 0.08, ease: [0.22, 1, 0.36, 1] }}
             className="mt-6 max-w-4xl text-4xl leading-[1.05] font-semibold sm:text-6xl lg:text-7xl"
           >
-            Power Your World.
+            Keep It Cold.
             <br />
-            <span className="text-gradient">Explore Without Limits.</span>
+            <span className="text-gradient">Powered by the Sun.</span>
           </motion.h1>
           <motion.p
             initial={{ opacity: 0, y: 24 }}
@@ -94,8 +96,8 @@ function Index() {
             transition={{ duration: 0.8, delay: 0.18 }}
             className="mt-6 max-w-2xl text-base text-muted-foreground sm:text-lg"
           >
-            Premium backup power systems and high-performance drones for professionals,
-            businesses, creators, farmers and adventurers.
+            Solar refrigerators, freezers, portable coolers and solar air-cons for homes,
+            businesses, farms and adventurers.
           </motion.p>
           <motion.div
             initial={{ opacity: 0, y: 24 }}
@@ -104,12 +106,12 @@ function Index() {
             className="mt-10 flex flex-wrap gap-3"
           >
             <Button asChild size="lg">
-              <Link to="/power-solutions">
-                Shop Power Solutions <ArrowRight className="size-4" />
+              <Link to="/sub-zero">
+                Shop Portable Refrigeration & Cooling <ArrowRight className="size-4" />
               </Link>
             </Button>
             <Button asChild size="lg" variant="outline">
-              <Link to="/drones">Shop Drones</Link>
+              <Link to="/solar-hvac">Shop Portable Solar-powered Air-cons</Link>
             </Button>
           </motion.div>
         </div>
@@ -117,22 +119,22 @@ function Index() {
 
       <section className="mx-auto max-w-7xl px-4 py-20 sm:px-6">
         <Reveal>
-          <h2 className="text-3xl font-semibold sm:text-4xl">Two categories. Zero compromise.</h2>
+          <h2 className="text-3xl font-semibold sm:text-4xl">Solar cooling. Zero compromise.</h2>
         </Reveal>
         <div className="mt-10 grid gap-6 lg:grid-cols-2">
           <CategoryCard
-            to="/power-solutions"
+            to="/sub-zero"
             image={catPower}
-            icon={BatteryCharging}
-            title="Backup Power Solutions"
-            items={powerCategories}
+            icon={Snowflake}
+            title="Sub-zero"
+            items={subZeroCategories}
           />
           <CategoryCard
-            to="/drones"
+            to="/solar-hvac"
             image={catDrones}
-            icon={Plane}
-            title="Drones"
-            items={droneCategories}
+            icon={Wind}
+            title="Solar HVAC"
+            items={solarHvacCategories}
             delay={0.1}
           />
         </div>
@@ -158,15 +160,15 @@ function Index() {
       </section>
 
       <FeaturedGrid
-        title="Featured drones"
-        subtitle="SwellPro and FIMI flight platforms, ready to deploy."
-        to="/drones"
-        products={drones}
+        title="Featured refrigeration"
+        subtitle="Solar fridges, freezers and coolers built for off-grid cold."
+        to="/sub-zero"
+        products={cooling}
       />
       <FeaturedGrid
-        title="Featured power"
-        subtitle="Silent lithium energy for homes, sites and expeditions."
-        to="/power-solutions"
+        title="Supporting power"
+        subtitle="Portable power stations to back up your cooling."
+        to="/back-up-power"
         products={power}
       />
 
@@ -175,7 +177,7 @@ function Index() {
           <div className="glass relative overflow-hidden rounded-4xl px-6 py-14 text-center sm:px-16">
             <div className="bg-hero absolute inset-0 -z-10 opacity-80" />
             <h2 className="text-3xl font-semibold sm:text-4xl">
-              Building something that needs power or eyes in the sky?
+              Building something that needs to stay cold off-grid?
             </h2>
             <p className="mx-auto mt-4 max-w-2xl text-muted-foreground">
               Send us your requirement and our specialists will spec the system, quote it and
@@ -206,7 +208,7 @@ function CategoryCard({
 }: {
   to: string;
   image: string;
-  icon: typeof Plane;
+  icon: typeof Snowflake;
   title: string;
   items: string[];
   delay?: number;
