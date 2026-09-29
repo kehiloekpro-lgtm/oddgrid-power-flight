@@ -13,7 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { ProductCard } from "@/components/site/ProductCard";
 import { Reveal } from "@/components/site/Reveal";
-import { backupPowerCategories, byCategory, solarHvacCategories, subZeroCategories } from "@/lib/products";
+import { byCategory, solarHvacCategories, subZeroCategories } from "@/lib/products";
 import heroImg from "@/assets/hero-solar-cooling.jpg";
 import catPower from "@/assets/cat-refrigeration.jpg";
 import catDrones from "@/assets/cat-solar-hvac.jpg";
