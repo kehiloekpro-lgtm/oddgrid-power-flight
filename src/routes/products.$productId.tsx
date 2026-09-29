@@ -95,11 +95,15 @@ function ProductPage() {
           Home
         </Link>
         <span className="px-2">/</span>
-        <Link
-          to={product.category === "drones" ? "/drones" : "/power-solutions"}
-          className="hover:text-foreground"
-        >
-          {product.category === "drones" ? "Drones" : "Power Solutions"}
+        <Link to={`/${product.category}`} className="hover:text-foreground">
+          {
+            {
+              "sub-zero": "Sub-zero",
+              "solar-hvac": "Solar HVAC",
+              "back-up-power": "Back-up power",
+              "hybrid-inverters": "Hybrid Inverters",
+            }[product.category]
+          }
         </Link>
         <span className="px-2">/</span>
         <span className="text-foreground">{product.name}</span>
