@@ -59,10 +59,10 @@ function QuotePage() {
               <p className="text-sm text-muted-foreground">Your quote list is empty.</p>
               <div className="mt-5 flex justify-center gap-2">
                 <Button asChild variant="outline" size="sm">
-                  <Link to="/power-solutions">Browse power</Link>
+                  <Link to="/sub-zero">Browse refrigeration</Link>
                 </Button>
                 <Button asChild variant="outline" size="sm">
-                  <Link to="/drones">Browse drones</Link>
+                  <Link to="/solar-hvac">Browse air-cons</Link>
                 </Button>
               </div>
             </div>
