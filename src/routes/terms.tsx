@@ -12,6 +12,8 @@ export const Route = createFileRoute("/terms")({
       { property: "og:title", content: "Terms & Conditions — OddGrid" },
       { property: "og:description", content: "Quotes, orders, delivery, warranty and returns." },
       { property: "og:url", content: "/terms" },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
     links: [{ rel: "canonical", href: "/terms" }],
   }),

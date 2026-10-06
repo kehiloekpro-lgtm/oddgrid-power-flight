@@ -8,7 +8,7 @@
     "price": 1099,
     "sku": "OG-SR-210",
     "stock": 14,
-    "images": ["cat-refrigeration", "hero-solar-cooling"],
+    "images": ["solar-fridge-210l"],
     "description": "High-efficiency upright refrigerator engineered for direct solar operation in homes, lodges, clinics and off-grid kitchens.",
     "specifications": {"Capacity": "210 L", "Temperature range": "0°C to 10°C", "Daily consumption": "0.55 kWh", "Input": "12/24 V DC", "Refrigerant": "R600a"},
     "features": ["Low-start DC compressor", "Thick high-density insulation", "Digital temperature control", "Reversible door"]
@@ -22,7 +22,7 @@
     "price": 949,
     "sku": "SC-RF-138",
     "stock": 18,
-    "images": ["cat-refrigeration", "hero-solar-cooling"],
+    "images": ["solar-fridge-freezer-138l"],
     "description": "Compact dual-zone solar refrigerator with independent chilled and frozen compartments for homes, mobile kitchens and field teams.",
     "specifications": {"Capacity": "138 L", "Zones": "Dual temperature", "Freezer range": "-18°C to 0°C", "Input": "12/24 V DC", "Solar input": "Built-in MPPT"},
     "features": ["Independent zone control", "Direct PV connection", "Low-voltage battery protection", "Quiet variable-speed compressor"]
@@ -36,7 +36,7 @@
     "price": 1399,
     "sku": "SC-SF-268",
     "stock": 9,
-    "images": ["cat-refrigeration", "hero-solar-cooling"],
+    "images": ["solar-freezer-268l"],
     "description": "Deep solar freezer designed for food security, farm produce and remote retail where reliable cold storage is essential.",
     "specifications": {"Capacity": "268 L", "Temperature range": "-24°C to 8°C", "Daily consumption": "0.68 kWh", "Input": "12/24 V DC", "Holdover": "Up to 18 hours"},
     "features": ["Convertible fridge/freezer mode", "Lockable lid", "Drain port", "Baskets included"]
@@ -50,7 +50,7 @@
     "price": 599,
     "sku": "OG-PC-45",
     "stock": 22,
-    "images": ["hero-solar-cooling", "cat-refrigeration"],
+    "images": ["portable-solar-cooler-45l"],
     "description": "Rugged dual-zone cooler for overlanding, camping, field work and mobile vending, ready for solar or vehicle power.",
     "specifications": {"Capacity": "45 L", "Temperature range": "-20°C to 20°C", "Input": "12/24 V DC or AC", "Battery runtime": "Up to 12 hours", "Weight": "18.5 kg"},
     "features": ["Removable battery", "App temperature control", "Wheels and telescopic handle", "USB device charging"]
@@ -64,7 +64,7 @@
     "price": 849,
     "sku": "OG-PC-75",
     "stock": 11,
-    "images": ["hero-solar-cooling", "cat-refrigeration"],
+    "images": ["portable-solar-cooler-75l"],
     "description": "Large-capacity portable fridge-freezer for extended off-grid trips and professional mobile operations.",
     "specifications": {"Capacity": "75 L", "Zones": "Dual temperature", "Temperature range": "-20°C to 20°C", "Input": "12/24 V DC or AC", "Solar input": "Up to 200 W"},
     "features": ["Independent dual zones", "Three-stage battery protection", "Reinforced corners", "Integrated bottle opener"]

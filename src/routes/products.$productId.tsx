@@ -39,6 +39,7 @@ export const Route = createFileRoute("/products/$productId")({
         { property: "og:title", content: `${product.name} — OddGrid` },
         { property: "og:description", content: product.description.slice(0, 155) },
         { property: "og:type", content: "product" },
+        { name: "twitter:card", content: "summary_large_image" },
         { property: "og:url", content: `/products/${params.productId}` },
       ],
       links: [{ rel: "canonical", href: `/products/${params.productId}` }],

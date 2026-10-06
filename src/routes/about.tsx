@@ -19,6 +19,8 @@ export const Route = createFileRoute("/about")({
         content: "Premium technology that gives customers freedom, performance and independence.",
       },
       { property: "og:url", content: "/about" },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
     links: [{ rel: "canonical", href: "/about" }],
   }),
