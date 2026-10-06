@@ -9,4 +9,4 @@
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
 
-- Store uploaded product photos as Lovable Assets pointers and resolve catalogue image keys centrally so all product views share the same photo.
+- Store the five uploaded refrigeration product photos in the public static product image directory and resolve their paths centrally so every view uses deployment-included files without CDN pointer dependencies.

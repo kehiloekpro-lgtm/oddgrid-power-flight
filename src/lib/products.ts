@@ -5,18 +5,13 @@ import catPowerImg from "@/assets/cat-backup-power.jpg";
 import catRefrigerationImg from "@/assets/cat-refrigeration.jpg";
 import catSolarHvacImg from "@/assets/cat-solar-hvac.jpg";
 import inverterImg from "@/assets/p-inverter.jpg";
-import fridge210Asset from "@/assets/solar-fridge-210l.jpeg.asset.json";
-import fridge138Asset from "@/assets/solar-fridge-freezer-138l.jpeg.asset.json";
-import freezer268Asset from "@/assets/solar-freezer-268l.png.asset.json";
-import cooler45Asset from "@/assets/portable-solar-cooler-45l.jpeg.asset.json";
-import cooler75Asset from "@/assets/portable-solar-cooler-75l.jpeg.asset.json";
 
 export const imageMap: Record<string, string> = {
-  "solar-fridge-210l": fridge210Asset.url,
-  "solar-fridge-freezer-138l": fridge138Asset.url,
-  "solar-freezer-268l": freezer268Asset.url,
-  "portable-solar-cooler-45l": cooler45Asset.url,
-  "portable-solar-cooler-75l": cooler75Asset.url,
+  "solar-fridge-210l": "/images/products/solar-fridge-210l.png",
+  "solar-fridge-freezer-138l": "/images/products/solar-fridge-freezer-138l.jpeg",
+  "solar-freezer-268l": "/images/products/solar-freezer-268l.png",
+  "portable-solar-cooler-45l": "/images/products/portable-solar-cooler-45l.jpeg",
+  "portable-solar-cooler-75l": "/images/products/portable-solar-cooler-75l.jpeg",
   hero: heroImg,
   "hero-solar-cooling": heroImg,
   "cat-power": catPowerImg,

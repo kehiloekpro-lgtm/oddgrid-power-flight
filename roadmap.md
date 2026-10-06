@@ -1,6 +1,7 @@
 # OddGrid repositioning
 
 ## Product photos and availability
+- [x] Repair the five refrigeration photo paths using permanent public assets, replace the 210L photo, and verify catalogue and detail rendering without changing other product details.
 - [x] Use the five named uploaded photos for their matching products and verify “Available to order” across catalogue and detail views.
 
 - [x] Replace catalogue data and category model
