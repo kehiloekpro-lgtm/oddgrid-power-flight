@@ -1,7 +1,7 @@
 # OddGrid repositioning
 
 ## Product photos and availability
-- [ ] Use the five named uploaded photos for their matching products and verify “Available to order” across catalogue and detail views.
+- [x] Use the five named uploaded photos for their matching products and verify “Available to order” across catalogue and detail views.
 
 - [x] Replace catalogue data and category model
 - [x] Add Sub-zero, Solar HVAC, Back-up power, and Hybrid Inverter pages
