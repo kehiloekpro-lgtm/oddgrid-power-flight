@@ -21,8 +21,8 @@ export function Footer() {
             <span className="text-lg font-semibold">OddGrid</span>
           </Link>
           <p className="max-w-sm text-sm text-muted-foreground">
-            Premium backup power systems and high-performance drones for professionals,
-            businesses, creators, farmers and adventurers.
+            Solar refrigeration, portable cooling and backup power for homes, businesses, farms
+            and adventurers.
           </p>
           <form
             className="flex max-w-sm gap-2"
@@ -71,7 +71,6 @@ export function Footer() {
           title="Company"
           links={[
             { label: "About", to: "/about" },
-            { label: "Brands", to: "/brands" },
             { label: "Contact", to: "/contact" },
           ]}
         />
