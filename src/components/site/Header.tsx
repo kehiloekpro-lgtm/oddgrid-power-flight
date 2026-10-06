@@ -21,7 +21,6 @@ const nav = [
   { label: "Solar HVAC", to: "/solar-hvac" },
   { label: "Back-up power", to: "/back-up-power" },
   { label: "Hybrid Inverters", to: "/hybrid-inverters" },
-  { label: "Brands", to: "/brands" },
   { label: "About", to: "/about" },
   { label: "Contact", to: "/contact" },
 ] as const;

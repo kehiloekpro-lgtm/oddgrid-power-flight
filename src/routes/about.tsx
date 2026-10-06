@@ -11,7 +11,7 @@ export const Route = createFileRoute("/about")({
       {
         name: "description",
         content:
-          "OddGrid supplies premium backup power and professional drone technology, backed by specialists who install and fly what they sell.",
+          "OddGrid supplies solar refrigeration, portable cooling and backup power, backed by specialists who size and support what they sell.",
       },
       { property: "og:title", content: "About OddGrid" },
       {
@@ -28,7 +28,7 @@ export const Route = createFileRoute("/about")({
 });
 
 const stats = [
-  { value: "2", label: "Flagship categories" },
+  { value: "4", label: "Product categories" },
   { value: "24h", label: "Dispatch on stocked items" },
   { value: "10+", label: "Years of partner engineering" },
   { value: "100%", label: "Warranty-backed" },
@@ -44,8 +44,9 @@ function AboutPage() {
           </h1>
           <p className="mt-6 text-muted-foreground">
             OddGrid exists for the moments the grid fails and the places the road ends. We curate
-            two categories — backup power and unmanned aircraft — and we go deep on both, so the
-            people who rely on this equipment never have to guess whether it will perform.
+            solar refrigeration, portable cooling and backup power — and we go deep on all of
+            them, so the people who rely on this equipment never have to guess whether it will
+            perform.
           </p>
           <p className="mt-4 text-muted-foreground">
             Everything we list is selected for build quality, serviceability and honest
@@ -57,14 +58,14 @@ function AboutPage() {
               <Link to="/quote">Request a quote</Link>
             </Button>
             <Button asChild size="lg" variant="outline">
-              <Link to="/brands">Meet our brands</Link>
+              <Link to="/contact">Talk to our team</Link>
             </Button>
           </div>
         </div>
         <Reveal>
           <img
             src={heroImg}
-            alt="OddGrid power station and drone"
+            alt="OddGrid solar refrigerator and portable cooler"
             loading="lazy"
             width={1920}
             height={1088}
