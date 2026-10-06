@@ -12,6 +12,8 @@ export const Route = createFileRoute("/privacy")({
       { property: "og:title", content: "Privacy Policy — OddGrid" },
       { property: "og:description", content: "How OddGrid handles your information." },
       { property: "og:url", content: "/privacy" },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
     links: [{ rel: "canonical", href: "/privacy" }],
   }),

@@ -25,6 +25,8 @@ export const Route = createFileRoute("/quote")({
         content: "Send your equipment list to OddGrid for specification and pricing.",
       },
       { property: "og:url", content: "/quote" },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
     links: [{ rel: "canonical", href: "/quote" }],
   }),

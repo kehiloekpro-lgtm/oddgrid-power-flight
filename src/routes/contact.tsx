@@ -24,6 +24,8 @@ export const Route = createFileRoute("/contact")({
         content: "Business enquiries, dealer pricing and technical support.",
       },
       { property: "og:url", content: "/contact" },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
     links: [{ rel: "canonical", href: "/contact" }],
   }),

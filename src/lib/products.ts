@@ -5,8 +5,18 @@ import catPowerImg from "@/assets/cat-backup-power.jpg";
 import catRefrigerationImg from "@/assets/cat-refrigeration.jpg";
 import catSolarHvacImg from "@/assets/cat-solar-hvac.jpg";
 import inverterImg from "@/assets/p-inverter.jpg";
+import fridge210Asset from "@/assets/solar-fridge-210l.jpeg.asset.json";
+import fridge138Asset from "@/assets/solar-fridge-freezer-138l.jpeg.asset.json";
+import freezer268Asset from "@/assets/solar-freezer-268l.png.asset.json";
+import cooler45Asset from "@/assets/portable-solar-cooler-45l.jpeg.asset.json";
+import cooler75Asset from "@/assets/portable-solar-cooler-75l.jpeg.asset.json";
 
 export const imageMap: Record<string, string> = {
+  "solar-fridge-210l": fridge210Asset.url,
+  "solar-fridge-freezer-138l": fridge138Asset.url,
+  "solar-freezer-268l": freezer268Asset.url,
+  "portable-solar-cooler-45l": cooler45Asset.url,
+  "portable-solar-cooler-75l": cooler75Asset.url,
   hero: heroImg,
   "hero-solar-cooling": heroImg,
   "cat-power": catPowerImg,
@@ -62,7 +72,7 @@ export const stockLabel = (stock: number) =>
     ? { label: "Out of stock", tone: "out" as const }
     : stock <= 5
       ? { label: `Low stock · ${stock} left`, tone: "low" as const }
-      : { label: "In stock", tone: "in" as const };
+      : { label: "Available to order", tone: "in" as const };
 
 export const subZeroCategories = [
   "Solar Refrigerators",

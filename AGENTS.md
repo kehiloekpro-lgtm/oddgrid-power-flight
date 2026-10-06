@@ -8,3 +8,5 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+
+- Store uploaded product photos as Lovable Assets pointers and resolve catalogue image keys centrally so all product views share the same photo.

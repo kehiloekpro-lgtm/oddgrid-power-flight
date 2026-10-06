@@ -20,6 +20,8 @@ export const Route = createFileRoute("/brands")({
         content: "Vetted manufacturers with proven field records, distributed by OddGrid.",
       },
       { property: "og:url", content: "/brands" },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
     links: [{ rel: "canonical", href: "/brands" }],
   }),
