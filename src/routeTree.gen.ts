@@ -19,7 +19,6 @@ import { Route as PowerSolutionsRouteImport } from './routes/power-solutions'
 import { Route as HybridInvertersRouteImport } from './routes/hybrid-inverters'
 import { Route as DronesRouteImport } from './routes/drones'
 import { Route as ContactRouteImport } from './routes/contact'
-import { Route as BrandsRouteImport } from './routes/brands'
 import { Route as BackUpPowerRouteImport } from './routes/back-up-power'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
@@ -75,11 +74,6 @@ const ContactRoute = ContactRouteImport.update({
   path: '/contact',
   getParentRoute: () => rootRouteImport,
 } as any)
-const BrandsRoute = BrandsRouteImport.update({
-  id: '/brands',
-  path: '/brands',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const BackUpPowerRoute = BackUpPowerRouteImport.update({
   id: '/back-up-power',
   path: '/back-up-power',
@@ -105,7 +99,6 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/back-up-power': typeof BackUpPowerRoute
-  '/brands': typeof BrandsRoute
   '/contact': typeof ContactRoute
   '/drones': typeof DronesRoute
   '/hybrid-inverters': typeof HybridInvertersRoute
@@ -122,7 +115,6 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/back-up-power': typeof BackUpPowerRoute
-  '/brands': typeof BrandsRoute
   '/contact': typeof ContactRoute
   '/drones': typeof DronesRoute
   '/hybrid-inverters': typeof HybridInvertersRoute
@@ -140,7 +132,6 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/back-up-power': typeof BackUpPowerRoute
-  '/brands': typeof BrandsRoute
   '/contact': typeof ContactRoute
   '/drones': typeof DronesRoute
   '/hybrid-inverters': typeof HybridInvertersRoute
@@ -159,7 +150,6 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/back-up-power'
-    | '/brands'
     | '/contact'
     | '/drones'
     | '/hybrid-inverters'
@@ -176,7 +166,6 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/back-up-power'
-    | '/brands'
     | '/contact'
     | '/drones'
     | '/hybrid-inverters'
@@ -193,7 +182,6 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/back-up-power'
-    | '/brands'
     | '/contact'
     | '/drones'
     | '/hybrid-inverters'
@@ -211,7 +199,6 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
   BackUpPowerRoute: typeof BackUpPowerRoute
-  BrandsRoute: typeof BrandsRoute
   ContactRoute: typeof ContactRoute
   DronesRoute: typeof DronesRoute
   HybridInvertersRoute: typeof HybridInvertersRoute
@@ -297,13 +284,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ContactRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/brands': {
-      id: '/brands'
-      path: '/brands'
-      fullPath: '/brands'
-      preLoaderRoute: typeof BrandsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/back-up-power': {
       id: '/back-up-power'
       path: '/back-up-power'
@@ -339,7 +319,6 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
   BackUpPowerRoute: BackUpPowerRoute,
-  BrandsRoute: BrandsRoute,
   ContactRoute: ContactRoute,
   DronesRoute: DronesRoute,
   HybridInvertersRoute: HybridInvertersRoute,
