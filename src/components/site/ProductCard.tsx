@@ -6,11 +6,13 @@ import { Button } from "@/components/ui/button";
 import { formatPrice, productImages, stockLabel, type Product } from "@/lib/products";
 import { useQuote } from "@/lib/quote-store";
 import { cn } from "@/lib/utils";
+import { DEMO_REFRIGERATOR } from "@/lib/supabase-config";
 
 export function ProductCard({ product }: { product: Product }) {
   const [image] = productImages(product);
   const stock = stockLabel(product.stock);
   const { add } = useQuote();
+  const isDemo = product.id === DEMO_REFRIGERATOR.slug;
 
   return (
     <article className="glass card-hover group flex flex-col overflow-hidden rounded-3xl">
@@ -27,7 +29,7 @@ export function ProductCard({ product }: { product: Product }) {
           height={900}
           className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
         />
-        <span
+        {!isDemo && <span
           className={cn(
             "absolute top-4 left-4 rounded-full border px-3 py-1 text-xs font-medium backdrop-blur-md",
             stock.tone === "in" && "border-success/40 bg-success/15 text-success",
@@ -36,7 +38,7 @@ export function ProductCard({ product }: { product: Product }) {
           )}
         >
           {stock.label}
-        </span>
+        </span>}
       </Link>
 
       <div className="flex flex-1 flex-col gap-3 p-5">
@@ -48,14 +50,14 @@ export function ProductCard({ product }: { product: Product }) {
         </div>
         <h3 className="text-lg leading-snug font-semibold">{product.name}</h3>
         <p className="line-clamp-2 text-sm text-muted-foreground">{product.description}</p>
-        <p className="mt-auto pt-2 text-xl font-semibold">{formatPrice(product.price)}</p>
+        <p className="mt-auto pt-2 text-xl font-semibold">{isDemo ? "Price pending verification" : formatPrice(product.price)}</p>
         <div className="flex flex-wrap gap-2 pt-1">
           <Button asChild size="sm" className="flex-1">
             <Link to="/products/$productId" params={{ productId: product.id }}>
               View details <ArrowRight className="size-4" />
             </Link>
           </Button>
-          <Button
+          {!isDemo && <Button
             size="sm"
             variant="outline"
             className="flex-1"
@@ -65,7 +67,7 @@ export function ProductCard({ product }: { product: Product }) {
             }}
           >
             <Plus className="size-4" /> Add to quote
-          </Button>
+          </Button>}
         </div>
       </div>
     </article>
