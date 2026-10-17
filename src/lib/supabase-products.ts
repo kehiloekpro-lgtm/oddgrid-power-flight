@@ -18,7 +18,7 @@ export interface PublicSupabaseProduct {
  * is not an authorization boundary.
  */
 export async function getPublishedProductBySlug(slug: string): Promise<PublicSupabaseProduct | null> {
-  if (!SUPABASE_PUBLISHABLE_KEY) return null;
+  if (!SUPABASE_PUBLISHABLE_KEY) throw new Error("Missing VITE_SUPABASE_PUBLISHABLE_KEY");
   const url = new URL(`${SUPABASE_URL}/rest/v1/products`);
   url.searchParams.set("select", "id,name,slug,sku,currency,selling_price,sale_type,status,availability");
   url.searchParams.set("slug", `eq.${slug}`);
