@@ -1,6 +1,6 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { Download, FileText, MessageCircle, Plus, Check } from "lucide-react";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,8 @@ import {
   type Product,
 } from "@/lib/products";
 import { useQuote } from "@/lib/quote-store";
+import { DEMO_REFRIGERATOR } from "@/lib/supabase-config";
+import { getPublishedProductBySlug } from "@/lib/supabase-products";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/products/$productId")({
@@ -32,6 +34,7 @@ export const Route = createFileRoute("/products/$productId")({
       };
     }
     const { product } = loaderData;
+    const isDemo = product.id === DEMO_REFRIGERATOR.slug;
     return {
       meta: [
         { title: `${product.name} — OddGrid` },
@@ -43,7 +46,7 @@ export const Route = createFileRoute("/products/$productId")({
         { property: "og:url", content: `/products/${params.productId}` },
       ],
       links: [{ rel: "canonical", href: `/products/${params.productId}` }],
-      scripts: [
+      scripts: isDemo ? [] : [
         {
           type: "application/ld+json",
           children: JSON.stringify({
@@ -79,6 +82,19 @@ function ProductPage() {
   const { add } = useQuote();
   const stock = stockLabel(product.stock);
   const related = relatedProducts(product);
+  const isDemo = product.id === DEMO_REFRIGERATOR.slug;
+  const [catalogueStatus, setCatalogueStatus] = useState<"loading" | "unpublished" | "published" | "error">("loading");
+
+  useEffect(() => {
+    if (!isDemo) return;
+    let cancelled = false;
+    getPublishedProductBySlug(DEMO_REFRIGERATOR.slug)
+      .then((record) => {
+        if (!cancelled) setCatalogueStatus(record ? "published" : "unpublished");
+      })
+      .catch(() => { if (!cancelled) setCatalogueStatus("error"); });
+    return () => { cancelled = true; };
+  }, [isDemo]);
 
   const onMove = (e: React.MouseEvent<HTMLDivElement>) => {
     const rect = frame.current?.getBoundingClientRect();
@@ -166,11 +182,14 @@ function ProductPage() {
             {product.brand} · {product.subcategory}
           </p>
           <h1 className="mt-3 text-3xl font-semibold sm:text-4xl">{product.name}</h1>
+          {isDemo && <p role="status" className="mt-3 rounded-xl border border-border p-4 text-sm text-muted-foreground">
+            Demonstration product — not available for purchase. Supabase public catalogue: {catalogueStatus === "loading" ? "checking…" : catalogueStatus === "published" ? "record found" : catalogueStatus === "error" ? "connection unavailable" : "draft product not publicly listed"}.
+          </p>}
           <p className="mt-4 text-muted-foreground">{product.description}</p>
 
           <div className="mt-6 flex flex-wrap items-center gap-4">
-            <span className="text-3xl font-semibold">{formatPrice(product.price)}</span>
-            <span
+            <span className="text-3xl font-semibold">{isDemo ? "Price pending verification" : formatPrice(product.price)}</span>
+            {!isDemo && <span
               className={cn(
                 "rounded-full border px-3 py-1 text-xs",
                 stock.tone === "in" && "border-success/40 bg-success/15 text-success",
@@ -179,11 +198,11 @@ function ProductPage() {
               )}
             >
               {stock.label}
-            </span>
+            </span>}
             <span className="text-xs text-muted-foreground">SKU {product.sku}</span>
           </div>
 
-          <div className="mt-8 flex flex-wrap gap-3">
+          {!isDemo && <div className="mt-8 flex flex-wrap gap-3">
             <Button
               size="lg"
               onClick={() => {
@@ -198,7 +217,7 @@ function ProductPage() {
                 <MessageCircle className="size-4" /> WhatsApp us
               </a>
             </Button>
-          </div>
+          </div>}
 
           <ul className="mt-8 grid gap-2">
             {product.features.map((f) => (
