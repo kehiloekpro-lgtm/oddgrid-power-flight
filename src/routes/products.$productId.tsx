@@ -93,7 +93,7 @@ function ProductPage() {
     parentCategory = parent;
   }
   const categoryRoutes = ["sub-zero", "solar-hvac", "back-up-power", "hybrid-inverters"];
-  const categoryRoute = parentCategory && categoryRoutes.includes(parentCategory.slug) ? parentCategory.slug : null;
+  const categoryRoute = parentCategory && categoryRoutes.includes(parentCategory.slug) ? parentCategory.slug as "sub-zero" | "solar-hvac" | "back-up-power" | "hybrid-inverters" : null;
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6">
@@ -102,7 +102,7 @@ function ProductPage() {
           Home
         </Link>
         <span className="px-2">/</span>
-        {categoryRoute && <><Link to={`/${categoryRoute}`} className="hover:text-foreground">{parentCategory?.name}</Link><span className="px-2">/</span></>}
+        {categoryRoute && <><Link to={categoryRoute === "sub-zero" ? "/sub-zero" : categoryRoute === "solar-hvac" ? "/solar-hvac" : categoryRoute === "back-up-power" ? "/back-up-power" : "/hybrid-inverters"} className="hover:text-foreground">{parentCategory?.name}</Link><span className="px-2">/</span></>}
         <span className="px-2">/</span>
         <span className="text-foreground">{publishedProduct.name}</span>
       </nav>
