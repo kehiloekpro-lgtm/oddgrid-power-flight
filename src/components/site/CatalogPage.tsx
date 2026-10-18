@@ -122,7 +122,7 @@ export function CatalogPage({
                   <p className="mt-auto pt-2 text-xl font-semibold">
                     {record.sale_type === "rfq" ? "Request a quote" : displaySellingPrice(record) ?? "Price on request"}
                   </p>
-                  <Link to="/products/$productId" params={{ productId: local.id }}
+                  <Link to="/products/$productId" params={{ productId: record.slug }}
                     className="rounded-xl border border-border px-4 py-2 text-center text-sm hover:border-primary/50">
                     View details
                   </Link>
