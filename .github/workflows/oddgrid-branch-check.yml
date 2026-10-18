@@ -18,10 +18,12 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm install --no-package-lock
-      - name: TypeScript check
-        run: npx tsc --noEmit
+      # TanStack Router generates routeTree.gen.ts during Vite build.
+      # Build first so new file routes are included before TypeScript validates them.
       - name: Build without production deployment
         run: npm run build
+      - name: TypeScript check
+        run: npx tsc --noEmit
       - name: Verify Supabase public API blocks draft product
         env:
           VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
