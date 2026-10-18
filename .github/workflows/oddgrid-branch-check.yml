@@ -22,3 +22,31 @@ jobs:
         run: npx tsc --noEmit
       - name: Build without production deployment
         run: npm run build
+      - name: Verify Supabase public API blocks draft product
+        env:
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
+        run: |
+          node --input-type=module <<'NODE'
+          const key = process.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+          if (!key) {
+            console.error('Missing GitHub Actions repository secret: VITE_SUPABASE_PUBLISHABLE_KEY');
+            process.exit(1);
+          }
+          const url = new URL('https://izixhjstwfgywbgrnrey.supabase.co/rest/v1/products');
+          url.searchParams.set('select', 'id,name,slug,status');
+          url.searchParams.set('slug', 'eq.solar-fridge-210l');
+          const response = await fetch(url, {
+            headers: { apikey: key, Accept: 'application/json' },
+            signal: AbortSignal.timeout(15000),
+          });
+          if (!response.ok) {
+            console.error('Supabase API request failed with HTTP', response.status);
+            process.exit(1);
+          }
+          const rows = await response.json();
+          if (!Array.isArray(rows) || rows.length !== 0) {
+            console.error('SECURITY CHECK FAILED: draft product visible to public API.');
+            process.exit(1);
+          }
+          console.log('PASS: Supabase public API returned zero rows for draft refrigerator.');
+          NODE
