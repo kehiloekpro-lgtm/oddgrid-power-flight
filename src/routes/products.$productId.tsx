@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 
 import { imageMap } from "@/lib/products";
-import { displaySellingPrice, getPublishedProductBySlug, getPublicProductDetails, listPublicCategories, type PublicCategory, type PublicSupabaseProduct, type PublicProductImage, type PublicProductSpec, type PublicProductSpecSection } from "@/lib/supabase-products";
+import { displaySellingPrice, getPublishedProductBySlug, getPublicProductDetails, listPublicCategories, resolvePublicProductImage, type PublicCategory, type PublicSupabaseProduct, type PublicProductImage, type PublicProductSpec, type PublicProductSpecSection } from "@/lib/supabase-products";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/products/$productId")({
@@ -56,11 +56,11 @@ function ProductPage() {
     return () => { cancelled = true; };
   }, [productId]);
 
-  // Use HTTPS image URLs only. Storage paths need a verified bucket access strategy.
+  // Prefer valid external HTTPS URLs, then the public product-images Storage bucket.
   const approvedImages = detailImages
-    .filter((item) => item.external_url?.startsWith("https://"))
+    .filter((item) => resolvePublicProductImage(item) !== null)
     .sort((a, b) => Number(b.is_primary) - Number(a.is_primary) || a.display_order - b.display_order)
-    .map((item) => ({ src: item.external_url!, alt: item.alt_text ?? publishedProduct?.name ?? "Product" }));
+    .map((item) => ({ src: resolvePublicProductImage(item)!, alt: item.alt_text ?? publishedProduct?.name ?? "Product" }));
   const gallery = approvedImages.length
     ? approvedImages
     : [{ src: imageMap[productId] ?? imageMap.hero, alt: publishedProduct?.name ?? "Product" }];
