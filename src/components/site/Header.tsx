@@ -11,10 +11,10 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { products, formatPrice } from "@/lib/products";
+import { listPublishedProducts, displaySellingPrice, type PublicSupabaseProduct } from "@/lib/supabase-products";
 import { useQuote } from "@/lib/quote-store";
 import { cn } from "@/lib/utils";
-import { DEMO_REFRIGERATOR } from "@/lib/supabase-config";
+
 
 const nav = [
   { label: "Home", to: "/" },
@@ -31,6 +31,8 @@ export function Header() {
   const [open, setOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery] = useState("");
+  const [published, setPublished] = useState<PublicSupabaseProduct[]>([]);
+  const [searchStatus, setSearchStatus] = useState<"loading" | "ready" | "error">("loading");
   const { count } = useQuote();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
@@ -43,15 +45,25 @@ export function Header() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  useEffect(() => {
+    if (!searchOpen) return;
+    let cancelled = false;
+    setSearchStatus("loading");
+    listPublishedProducts()
+      .then((rows) => { if (!cancelled) { setPublished(rows); setSearchStatus("ready"); } })
+      .catch(() => { if (!cancelled) { setPublished([]); setSearchStatus("error"); } });
+    return () => { cancelled = true; };
+  }, [searchOpen]);
+
   const results = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return products.slice(0, 6);
-    return products
+    if (!q) return published.slice(0, 6);
+    return published
       .filter((p) =>
-        [p.name, p.brand, p.subcategory, p.description].join(" ").toLowerCase().includes(q),
+        [p.name, p.sku ?? "", p.slug].join(" ").toLowerCase().includes(q),
       )
       .slice(0, 8);
-  }, [query]);
+  }, [query, published]);
 
   return (
     <header
@@ -103,18 +115,20 @@ export function Header() {
                   <li key={p.id}>
                     <Link
                       to="/products/$productId"
-                      params={{ productId: p.id }}
+                      params={{ productId: p.slug }}
                       onClick={() => setSearchOpen(false)}
                       className="flex items-center justify-between gap-3 rounded-xl px-3 py-2 text-sm transition-colors hover:bg-secondary"
                     >
                       <span className="min-w-0 truncate">{p.name}</span>
                       <span className="shrink-0 text-muted-foreground">
-                        {p.id === DEMO_REFRIGERATOR.slug ? "Price pending verification" : formatPrice(p.price)}
+                        {p.sale_type === "rfq" ? "Request a quote" : displaySellingPrice(p) ?? "Price on request"}
                       </span>
                     </Link>
                   </li>
                 ))}
-                {results.length === 0 && (
+                {searchStatus === "loading" && <li role="status" className="px-3 py-6 text-center text-sm text-muted-foreground">Loading catalogue…</li>}
+                {searchStatus === "error" && <li role="alert" className="px-3 py-6 text-center text-sm text-muted-foreground">Search is temporarily unavailable.</li>}
+                {searchStatus === "ready" && results.length === 0 && (
                   <li className="px-3 py-6 text-center text-sm text-muted-foreground">
                     No products matched that search.
                   </li>
