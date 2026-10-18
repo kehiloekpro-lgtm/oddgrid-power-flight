@@ -10,6 +10,11 @@ export interface PublicSupabaseProduct {
   sale_type: "direct" | "rfq";
   status: "active";
   availability: string;
+  category_id?: string | null;
+  brand_id?: string | null;
+  description?: string | null;
+  model?: string | null;
+  warranty_summary?: string | null;
 }
 
 /**
@@ -20,7 +25,7 @@ export interface PublicSupabaseProduct {
 export async function getPublishedProductBySlug(slug: string): Promise<PublicSupabaseProduct | null> {
   if (!SUPABASE_PUBLISHABLE_KEY) throw new Error("Missing VITE_SUPABASE_PUBLISHABLE_KEY");
   const url = new URL(`${SUPABASE_URL}/rest/v1/products`);
-  url.searchParams.set("select", "id,name,slug,sku,currency,selling_price,sale_type,status,availability");
+  url.searchParams.set("select", "id,name,slug,sku,currency,selling_price,sale_type,status,availability,category_id,brand_id,description,model,warranty_summary");
   url.searchParams.set("slug", `eq.${slug}`);
   url.searchParams.set("status", "eq.active");
   url.searchParams.set("limit", "1");
@@ -44,7 +49,7 @@ export function isPurchasable(product: PublicSupabaseProduct | null): boolean {
 export async function listPublishedProducts(): Promise<PublicSupabaseProduct[]> {
   if (!SUPABASE_PUBLISHABLE_KEY) throw new Error("Missing VITE_SUPABASE_PUBLISHABLE_KEY");
   const url = new URL(`${SUPABASE_URL}/rest/v1/products`);
-  url.searchParams.set("select", "id,name,slug,sku,currency,selling_price,sale_type,status,availability");
+  url.searchParams.set("select", "id,name,slug,sku,currency,selling_price,sale_type,status,availability,category_id,brand_id,description,model,warranty_summary");
   url.searchParams.set("status", "eq.active");
   url.searchParams.set("availability", "neq.discontinued");
   url.searchParams.set("order", "name.asc");
