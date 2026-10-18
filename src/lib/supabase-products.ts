@@ -108,6 +108,20 @@ export interface PublicBrand {
   slug: string;
 }
 
+/** Resolve a public product image from an approved HTTPS URL or the public Storage bucket. */
+export function resolvePublicProductImage(image: PublicProductImage): string | null {
+  if (image.external_url) {
+    try {
+      const url = new URL(image.external_url);
+      if (url.protocol === "https:") return url.toString();
+    } catch { /* Ignore malformed external URLs. */ }
+  }
+  const path = image.storage_path;
+  if (!path || path.startsWith("/") || path.endsWith("/") || path.includes("\\") ||
+      path.split("/").some((segment) => !segment || segment === "." || segment === "..")) return null;
+  return `${SUPABASE_URL}/storage/v1/object/public/product-images/${path.split("/").map(encodeURIComponent).join("/")}`;
+}
+
 export interface PublicProductImage {
   id: string;
   product_id: string;
