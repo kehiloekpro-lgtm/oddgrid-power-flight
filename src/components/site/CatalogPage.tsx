@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 
 import { Link } from "@tanstack/react-router";
 import { imageMap } from "@/lib/products";
-import { displaySellingPrice, listPublishedProducts, listPublicCategories, getPublicProductDetails, type PublicCategory, type PublicSupabaseProduct } from "@/lib/supabase-products";
+import { displaySellingPrice, listPublishedProducts, listPublicCategories, getPublicProductDetails, resolvePublicProductImage, type PublicCategory, type PublicSupabaseProduct } from "@/lib/supabase-products";
 import { Reveal } from "@/components/site/Reveal";
 import { type ProductCategory } from "@/lib/products";
 import { cn } from "@/lib/utils";
@@ -40,8 +40,8 @@ export function CatalogPage({
             const details = await getPublicProductDetails(row.id);
             const photo = details.images
               .sort((a, b) => Number(b.is_primary) - Number(a.is_primary) || a.display_order - b.display_order)
-              .find((item) => item.external_url?.startsWith("https://"));
-            return [row.id, photo?.external_url ?? ""] as const;
+              .find((item) => resolvePublicProductImage(item) !== null);
+            return [row.id, photo ? resolvePublicProductImage(photo) ?? "" : ""] as const;
           } catch { return [row.id, ""] as const; }
         }));
         if (!cancelled) setImageUrls(Object.fromEntries(pictures));
