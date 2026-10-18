@@ -27,49 +27,14 @@ export const Route = createFileRoute("/products/$productId")({
     if (!product) throw notFound();
     return { product };
   },
-  head: ({ loaderData, params }) => {
-    if (!loaderData) {
-      return {
-        meta: [{ title: "Product unavailable — OddGrid" }, { name: "robots", content: "noindex" }],
-      };
-    }
-    const { product } = loaderData;
-    const isDemo = product.id === DEMO_REFRIGERATOR.slug;
-    return {
-      meta: [
-        { title: `${product.name} — OddGrid` },
-        { name: "description", content: product.description.slice(0, 155) },
-        { property: "og:title", content: `${product.name} — OddGrid` },
-        { property: "og:description", content: product.description.slice(0, 155) },
-        { property: "og:type", content: "product" },
-        { name: "twitter:card", content: "summary_large_image" },
-        { property: "og:url", content: `/products/${params.productId}` },
-      ],
-      links: [{ rel: "canonical", href: `/products/${params.productId}` }],
-      scripts: isDemo ? [] : [
-        {
-          type: "application/ld+json",
-          children: JSON.stringify({
-            "@context": "https://schema.org",
-            "@type": "Product",
-            name: product.name,
-            brand: product.brand,
-            sku: product.sku,
-            description: product.description,
-            offers: {
-              "@type": "Offer",
-              price: product.price,
-              priceCurrency: "USD",
-              availability:
-                product.stock > 0
-                  ? "https://schema.org/InStock"
-                  : "https://schema.org/OutOfStock",
-            },
-          }),
-        },
-      ],
-    };
-  },
+  // Metadata is deliberately neutral until published product data can be resolved server-side.
+  // Never emit fabricated prices, stock claims or structured offers from local demo JSON.
+  head: () => ({
+    meta: [
+      { title: "OddGrid Product Details" },
+      { name: "robots", content: "noindex" },
+    ],
+  }),
   component: ProductPage,
 });
 
