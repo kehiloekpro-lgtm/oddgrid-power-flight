@@ -1,10 +1,10 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 
 import { Link } from "@tanstack/react-router";
-import { productImages, type Product } from "@/lib/products";
-import { displaySellingPrice, listPublishedProducts, type PublicSupabaseProduct } from "@/lib/supabase-products";
+import { imageMap } from "@/lib/products";
+import { displaySellingPrice, listPublishedProducts, listPublicCategories, getPublicProductDetails, type PublicCategory, type PublicSupabaseProduct } from "@/lib/supabase-products";
 import { Reveal } from "@/components/site/Reveal";
-import { byCategory, type ProductCategory } from "@/lib/products";
+import { type ProductCategory } from "@/lib/products";
 import { cn } from "@/lib/utils";
 
 export function CatalogPage({
@@ -21,35 +21,57 @@ export function CatalogPage({
   image: string;
 }) {
   const [active, setActive] = useState<string>("All");
-  const localProducts = useMemo(() => byCategory(category), [category]);
+  const [categories, setCategories] = useState<PublicCategory[]>([]);
+  const [imageUrls, setImageUrls] = useState<Record<string, string>>({});
   const [published, setPublished] = useState<PublicSupabaseProduct[]>([]);
   const [loadState, setLoadState] = useState<"loading" | "ready" | "error">("loading");
 
   useEffect(() => {
     let cancelled = false;
     setLoadState("loading");
-    listPublishedProducts()
-      .then((rows) => {
-        if (!cancelled) {
-          setPublished(rows);
-          setLoadState("ready");
-        }
+    Promise.all([listPublishedProducts(), listPublicCategories()])
+      .then(async ([rows, cats]) => {
+        if (cancelled) return;
+        setPublished(rows);
+        setCategories(cats);
+        setLoadState("ready");
+        const pictures = await Promise.all(rows.map(async (row) => {
+          try {
+            const details = await getPublicProductDetails(row.id);
+            const photo = details.images
+              .sort((a, b) => Number(b.is_primary) - Number(a.is_primary) || a.display_order - b.display_order)
+              .find((item) => item.external_url?.startsWith("https://"));
+            return [row.id, photo?.external_url ?? ""] as const;
+          } catch { return [row.id, ""] as const; }
+        }));
+        if (!cancelled) setImageUrls(Object.fromEntries(pictures));
       })
-      .catch(() => {
-        if (!cancelled) setLoadState("error");
-      });
+      .catch(() => { if (!cancelled) setLoadState("error"); });
     return () => { cancelled = true; };
   }, []);
 
-  // Existing local entries provide imagery and category layout ONLY.
-  // Supabase alone determines whether a product appears and what price it has.
-  const shown = localProducts
-    .filter((local) => active === "All" || local.subcategory === active)
-    .map((local) => ({
-      local,
-      record: published.find((row) => row.slug === local.id),
-    }))
-    .filter((entry): entry is { local: Product; record: PublicSupabaseProduct } => !!entry.record);
+  const root = categories.find((item) => item.slug === category);
+  const descendants = new Set<string>();
+  if (root) {
+    descendants.add(root.id);
+    let changed = true;
+    while (changed) {
+      changed = false;
+      for (const item of categories) {
+        if (item.parent_id && descendants.has(item.parent_id) && !descendants.has(item.id)) {
+          descendants.add(item.id);
+          changed = true;
+        }
+      }
+    }
+  }
+  const shown = published
+    .filter((record) => record.category_id && descendants.has(record.category_id))
+    .filter((record) => {
+      if (active === "All") return true;
+      const item = categories.find((cat) => cat.id === record.category_id);
+      return item?.name === active;
+    });
 
   return (
     <>
@@ -87,15 +109,15 @@ export function CatalogPage({
         </div>
 
         <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {shown.map(({ local, record }, i) => (
+          {shown.map((record, i) => (
             <Reveal key={record.id} delay={Math.min(i, 5) * 0.05}>
               <article className="glass card-hover group flex flex-col overflow-hidden rounded-3xl">
-                <Link to="/products/$productId" params={{ productId: local.id }} className="relative block aspect-4/3 overflow-hidden bg-surface-2">
-                  <img src={productImages(local)[0]} alt={record.name} loading="lazy" width={1200} height={900}
+                <Link to="/products/$productId" params={{ productId: record.slug }} className="relative block aspect-4/3 overflow-hidden bg-surface-2">
+                  <img src={imageUrls[record.id] || imageMap[record.slug] || image} alt={record.name} loading="lazy" width={1200} height={900}
                     className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105" />
                 </Link>
                 <div className="flex flex-1 flex-col gap-3 p-5">
-                  <span className="text-xs tracking-[0.2em] text-muted-foreground uppercase">{local.subcategory}</span>
+                  <span className="text-xs tracking-[0.2em] text-muted-foreground uppercase">{categories.find((item) => item.id === record.category_id)?.name ?? title}</span>
                   <h3 className="text-lg leading-snug font-semibold">{record.name}</h3>
                   <p className="mt-auto pt-2 text-xl font-semibold">
                     {record.sale_type === "rfq" ? "Request a quote" : displaySellingPrice(record) ?? "Price on request"}
