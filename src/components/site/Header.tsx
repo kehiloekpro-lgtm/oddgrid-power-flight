@@ -14,6 +14,7 @@ import {
 import { products, formatPrice } from "@/lib/products";
 import { useQuote } from "@/lib/quote-store";
 import { cn } from "@/lib/utils";
+import { DEMO_REFRIGERATOR } from "@/lib/supabase-config";
 
 const nav = [
   { label: "Home", to: "/" },
@@ -108,7 +109,7 @@ export function Header() {
                     >
                       <span className="min-w-0 truncate">{p.name}</span>
                       <span className="shrink-0 text-muted-foreground">
-                        {formatPrice(p.price)}
+                        {p.id === DEMO_REFRIGERATOR.slug ? "Price pending verification" : formatPrice(p.price)}
                       </span>
                     </Link>
                   </li>
