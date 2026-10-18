@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
+import { DEMO_REFRIGERATOR } from "./supabase-config";
 
 interface QuoteItem {
   id: string;
@@ -20,25 +21,40 @@ const STORAGE_KEY = "oddgrid-quote";
 
 export function QuoteProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<QuoteItem[]>([]);
+  const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
     try {
       const raw = window.localStorage.getItem(STORAGE_KEY);
-      if (raw) setItems(JSON.parse(raw) as QuoteItem[]);
+      if (raw) {
+        const saved: unknown = JSON.parse(raw);
+        if (Array.isArray(saved)) {
+          setItems(saved.filter((item): item is QuoteItem =>
+            typeof item === "object" && item !== null &&
+            typeof item.id === "string" && item.id !== DEMO_REFRIGERATOR.slug &&
+            typeof item.name === "string" && typeof item.qty === "number" &&
+            Number.isInteger(item.qty) && item.qty > 0
+          ));
+        }
+      }
     } catch {
       /* ignore */
+    } finally {
+      setHydrated(true);
     }
   }, []);
 
   useEffect(() => {
+    if (!hydrated) return;
     try {
       window.localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
     } catch {
       /* ignore */
     }
-  }, [items]);
+  }, [items, hydrated]);
 
   const add = useCallback((id: string, name: string) => {
+    if (id === DEMO_REFRIGERATOR.slug) return;
     setItems((prev) => {
       const found = prev.find((i) => i.id === id);
       if (found) return prev.map((i) => (i.id === id ? { ...i, qty: i.qty + 1 } : i));
