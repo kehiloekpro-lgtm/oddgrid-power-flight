@@ -8,7 +8,7 @@ export interface PublicSupabaseProduct {
   currency: string;
   selling_price: number | null;
   sale_type: "direct" | "rfq";
-  status: "active";
+  status: "active" | "draft";
   availability: string;
   category_id?: string | null;
   brand_id?: string | null;
@@ -80,12 +80,12 @@ export function displaySellingPrice(product: PublicSupabaseProduct): string | nu
 }
 
 /** Read-only catalogue relationships. Public RLS policies restrict returned rows. */
-async function publicCatalogueRows<T>(table: string, query: Record<string, string>): Promise<T[]> {
+async function publicCatalogueRows<T>(table: string, query: Record<string, string>, accessToken?: string): Promise<T[]> {
   if (!SUPABASE_PUBLISHABLE_KEY) throw new Error("Missing VITE_SUPABASE_PUBLISHABLE_KEY");
   const url = new URL(`${SUPABASE_URL}/rest/v1/${table}`);
   for (const [key, value] of Object.entries(query)) url.searchParams.set(key, value);
   const response = await fetch(url, {
-    headers: { apikey: SUPABASE_PUBLISHABLE_KEY, Accept: "application/json" },
+    headers: { apikey: SUPABASE_PUBLISHABLE_KEY, Accept: "application/json", ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}) },
     signal: AbortSignal.timeout(15000),
   });
   if (!response.ok) throw new Error(`Supabase ${table} request failed (${response.status})`);
@@ -160,7 +160,7 @@ export function listPublicBrands(): Promise<PublicBrand[]> {
   });
 }
 
-export async function getPublicProductDetails(productId: string): Promise<{
+export async function getPublicProductDetails(productId: string, accessToken?: string): Promise<{
   images: PublicProductImage[];
   sections: PublicProductSpecSection[];
   specs: PublicProductSpec[];
@@ -169,7 +169,7 @@ export async function getPublicProductDetails(productId: string): Promise<{
     publicCatalogueRows<PublicProductImage>("product_images", {
       select: "id,product_id,storage_path,external_url,alt_text,display_order,is_primary",
       product_id: `eq.${productId}`, order: "display_order.asc",
-    }),
+    }, accessToken),
     publicCatalogueRows<PublicProductSpecSection>("product_spec_sections", {
       select: "id,name,display_order", product_id: `eq.${productId}`, order: "display_order.asc",
     }),
@@ -179,4 +179,13 @@ export async function getPublicProductDetails(productId: string): Promise<{
     }),
   ]);
   return { images, sections, specs };
+}
+
+/** Draft access is granted only by Supabase RLS to authorized authenticated users. */
+export async function getPreviewProductById(id: string, accessToken: string): Promise<PublicSupabaseProduct | null> {
+  const rows = await publicCatalogueRows<PublicSupabaseProduct>("products", {
+    select: "id,name,slug,sku,currency,selling_price,sale_type,status,availability,category_id,brand_id,description,model,warranty_summary",
+    id: `eq.${id}`, limit: "1",
+  }, accessToken);
+  return rows[0] ?? null;
 }
