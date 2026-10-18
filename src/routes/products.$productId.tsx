@@ -1,32 +1,11 @@
-import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { Download, FileText, MessageCircle, Plus, Check } from "lucide-react";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { toast } from "sonner";
 
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ProductCard } from "@/components/site/ProductCard";
-import { Reveal } from "@/components/site/Reveal";
-import {
-  formatPrice,
-  getProduct,
-  productImages,
-  relatedProducts,
-  stockLabel,
-  WHATSAPP_URL,
-  type Product,
-} from "@/lib/products";
-import { useQuote } from "@/lib/quote-store";
-import { DEMO_REFRIGERATOR } from "@/lib/supabase-config";
-import { displaySellingPrice, getPublishedProductBySlug, getPublicProductDetails, type PublicSupabaseProduct, type PublicProductImage, type PublicProductSpec, type PublicProductSpecSection } from "@/lib/supabase-products";
+import { imageMap } from "@/lib/products";
+import { displaySellingPrice, getPublishedProductBySlug, getPublicProductDetails, listPublicCategories, type PublicCategory, type PublicSupabaseProduct, type PublicProductImage, type PublicProductSpec, type PublicProductSpecSection } from "@/lib/supabase-products";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/products/$productId")({
-  loader: ({ params }) => {
-    const product = getProduct(params.productId);
-    if (!product) throw notFound();
-    return { product };
-  },
   // Metadata is deliberately neutral until published product data can be resolved server-side.
   // Never emit fabricated prices, stock claims or structured offers from local demo JSON.
   head: () => ({
@@ -39,20 +18,16 @@ export const Route = createFileRoute("/products/$productId")({
 });
 
 function ProductPage() {
-  const { product } = Route.useLoaderData() as { product: Product };
-  const images = productImages(product);
+  const { productId } = Route.useParams();
   const [index, setIndex] = useState(0);
   const [zoom, setZoom] = useState<{ x: number; y: number } | null>(null);
   const frame = useRef<HTMLDivElement>(null);
-  const { add } = useQuote();
-  const stock = stockLabel(product.stock);
-  const related = relatedProducts(product);
-  const isDemo = product.id === DEMO_REFRIGERATOR.slug;
   const [catalogueStatus, setCatalogueStatus] = useState<"loading" | "unpublished" | "published" | "error">("loading");
   const [publishedProduct, setPublishedProduct] = useState<PublicSupabaseProduct | null>(null);
   const [detailImages, setDetailImages] = useState<PublicProductImage[]>([]);
   const [specs, setSpecs] = useState<PublicProductSpec[]>([]);
   const [sections, setSections] = useState<PublicProductSpecSection[]>([]);
+  const [categories, setCategories] = useState<PublicCategory[]>([]);
 
   useEffect(() => {
     let cancelled = false;
@@ -61,14 +36,15 @@ function ProductPage() {
     setDetailImages([]);
     setSpecs([]);
     setSections([]);
-    getPublishedProductBySlug(product.id)
+    getPublishedProductBySlug(productId)
       .then(async (record) => {
         if (record) {
-          const details = await getPublicProductDetails(record.id);
+          const [details, categoryRows] = await Promise.all([getPublicProductDetails(record.id), listPublicCategories()]);
           if (!cancelled) {
             setDetailImages(details.images);
             setSpecs(details.specs);
             setSections(details.sections);
+            setCategories(categoryRows);
           }
         }
         if (!cancelled) {
@@ -78,7 +54,7 @@ function ProductPage() {
       })
       .catch(() => { if (!cancelled) setCatalogueStatus("error"); });
     return () => { cancelled = true; };
-  }, [product.id]);
+  }, [productId]);
 
   // Use HTTPS image URLs only. Storage paths need a verified bucket access strategy.
   const approvedImages = detailImages
@@ -87,7 +63,7 @@ function ProductPage() {
     .map((item) => ({ src: item.external_url!, alt: item.alt_text ?? publishedProduct?.name ?? "Product" }));
   const gallery = approvedImages.length
     ? approvedImages
-    : images.map((src) => ({ src, alt: publishedProduct?.name ?? "Product" }));
+    : [{ src: imageMap[productId] ?? imageMap.hero, alt: publishedProduct?.name ?? "Product" }];
 
   const onMove = (e: React.MouseEvent<HTMLDivElement>) => {
     const rect = frame.current?.getBoundingClientRect();
@@ -109,6 +85,16 @@ function ProductPage() {
     </main>;
   }
 
+  const assignedCategory = categories.find((item) => item.id === publishedProduct.category_id);
+  let parentCategory = assignedCategory;
+  while (parentCategory?.parent_id) {
+    const parent = categories.find((item) => item.id === parentCategory?.parent_id);
+    if (!parent) break;
+    parentCategory = parent;
+  }
+  const categoryRoutes = ["sub-zero", "solar-hvac", "back-up-power", "hybrid-inverters"];
+  const categoryRoute = parentCategory && categoryRoutes.includes(parentCategory.slug) ? parentCategory.slug : null;
+
   return (
     <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6">
       <nav className="text-sm text-muted-foreground">
@@ -116,18 +102,9 @@ function ProductPage() {
           Home
         </Link>
         <span className="px-2">/</span>
-        <Link to={`/${product.category}`} className="hover:text-foreground">
-          {
-            {
-              "sub-zero": "Sub-zero",
-              "solar-hvac": "Solar HVAC",
-              "back-up-power": "Back-up power",
-              "hybrid-inverters": "Hybrid Inverters",
-            }[product.category]
-          }
-        </Link>
+        {categoryRoute && <><Link to={`/${categoryRoute}`} className="hover:text-foreground">{parentCategory?.name}</Link><span className="px-2">/</span></>}
         <span className="px-2">/</span>
-        <span className="text-foreground">{product.name}</span>
+        <span className="text-foreground">{publishedProduct.name}</span>
       </nav>
 
       <div className="mt-8 grid gap-10 lg:grid-cols-2">
@@ -183,7 +160,7 @@ function ProductPage() {
 
         <div>
           <p className="text-xs tracking-[0.25em] text-muted-foreground uppercase">
-            {product.subcategory}
+            {assignedCategory?.name ?? "Product"}
           </p>
           <h1 className="mt-3 text-3xl font-semibold sm:text-4xl">{publishedProduct.name}</h1>
           <div className="mt-6 flex flex-wrap items-center gap-4">
@@ -220,18 +197,7 @@ function ProductPage() {
         </section>
       )}
 
-      {false && related.length > 0 && (
-        <section className="mt-20">
-          <h2 className="text-2xl font-semibold sm:text-3xl">Related products</h2>
-          <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {related.map((p, i) => (
-              <Reveal key={p.id} delay={i * 0.06}>
-                <ProductCard product={p} />
-              </Reveal>
-            ))}
-          </div>
-        </section>
-      )}
+
     </div>
   );
 }
