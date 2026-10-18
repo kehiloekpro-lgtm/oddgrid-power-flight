@@ -18,7 +18,7 @@ import {
 } from "@/lib/products";
 import { useQuote } from "@/lib/quote-store";
 import { DEMO_REFRIGERATOR } from "@/lib/supabase-config";
-import { getPublishedProductBySlug } from "@/lib/supabase-products";
+import { displaySellingPrice, getPublishedProductBySlug, type PublicSupabaseProduct } from "@/lib/supabase-products";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/products/$productId")({
@@ -84,17 +84,22 @@ function ProductPage() {
   const related = relatedProducts(product);
   const isDemo = product.id === DEMO_REFRIGERATOR.slug;
   const [catalogueStatus, setCatalogueStatus] = useState<"loading" | "unpublished" | "published" | "error">("loading");
+  const [publishedProduct, setPublishedProduct] = useState<PublicSupabaseProduct | null>(null);
 
   useEffect(() => {
-    if (!isDemo) return;
     let cancelled = false;
-    getPublishedProductBySlug(DEMO_REFRIGERATOR.slug)
+    setCatalogueStatus("loading");
+    setPublishedProduct(null);
+    getPublishedProductBySlug(product.id)
       .then((record) => {
-        if (!cancelled) setCatalogueStatus(record ? "published" : "unpublished");
+        if (!cancelled) {
+          setPublishedProduct(record);
+          setCatalogueStatus(record ? "published" : "unpublished");
+        }
       })
       .catch(() => { if (!cancelled) setCatalogueStatus("error"); });
     return () => { cancelled = true; };
-  }, [isDemo]);
+  }, [product.id]);
 
   const onMove = (e: React.MouseEvent<HTMLDivElement>) => {
     const rect = frame.current?.getBoundingClientRect();
@@ -104,6 +109,17 @@ function ProductPage() {
       y: ((e.clientY - rect.top) / rect.height) * 100,
     });
   };
+
+  if (catalogueStatus !== "published" || !publishedProduct) {
+    const message = catalogueStatus === "loading" ? "Checking product availability…" :
+      catalogueStatus === "error" ? "Product information is temporarily unavailable. Please try again later." :
+      "This product is not currently published.";
+    return <main className="mx-auto max-w-7xl px-4 py-24 sm:px-6">
+      <h1 className="text-3xl font-semibold">Product unavailable</h1>
+      <p role="status" className="mt-4 text-muted-foreground">{message}</p>
+      <Link to="/" className="mt-6 inline-block text-primary">Return to OddGrid</Link>
+    </main>;
+  }
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6">
@@ -179,101 +195,22 @@ function ProductPage() {
 
         <div>
           <p className="text-xs tracking-[0.25em] text-muted-foreground uppercase">
-            {product.brand} · {product.subcategory}
+            {product.subcategory}
           </p>
-          <h1 className="mt-3 text-3xl font-semibold sm:text-4xl">{product.name}</h1>
-          {isDemo && <p role="status" className="mt-3 rounded-xl border border-border p-4 text-sm text-muted-foreground">
-            Demonstration product — not available for purchase. Supabase public catalogue: {catalogueStatus === "loading" ? "checking…" : catalogueStatus === "published" ? "record found" : catalogueStatus === "error" ? "connection unavailable" : "draft product not publicly listed"}.
-          </p>}
-          <p className="mt-4 text-muted-foreground">{product.description}</p>
-
+          <h1 className="mt-3 text-3xl font-semibold sm:text-4xl">{publishedProduct.name}</h1>
           <div className="mt-6 flex flex-wrap items-center gap-4">
-            <span className="text-3xl font-semibold">{isDemo ? "Price pending verification" : formatPrice(product.price)}</span>
-            {!isDemo && <span
-              className={cn(
-                "rounded-full border px-3 py-1 text-xs",
-                stock.tone === "in" && "border-success/40 bg-success/15 text-success",
-                stock.tone === "low" && "border-accent/40 bg-accent/15 text-accent",
-                stock.tone === "out" && "border-destructive/40 bg-destructive/15 text-destructive",
-              )}
-            >
-              {stock.label}
-            </span>}
-            <span className="text-xs text-muted-foreground">SKU {product.sku}</span>
+            <span className="text-3xl font-semibold">
+              {publishedProduct.sale_type === "rfq" ? "Price on request" : displaySellingPrice(publishedProduct) ?? "Price on request"}
+            </span>
+            {publishedProduct.sku && <span className="text-xs text-muted-foreground">SKU {publishedProduct.sku}</span>}
           </div>
-
-          {!isDemo && <div className="mt-8 flex flex-wrap gap-3">
-            <Button
-              size="lg"
-              onClick={() => {
-                add(product.id, product.name);
-                toast.success(`${product.name} added to your quote`);
-              }}
-            >
-              <Plus className="size-4" /> Request quote
-            </Button>
-            <Button asChild size="lg" variant="outline">
-              <a href={WHATSAPP_URL} target="_blank" rel="noreferrer">
-                <MessageCircle className="size-4" /> WhatsApp us
-              </a>
-            </Button>
-          </div>}
-
-          <ul className="mt-8 grid gap-2">
-            {product.features.map((f) => (
-              <li key={f} className="flex gap-3 text-sm text-muted-foreground">
-                <Check className="mt-0.5 size-4 shrink-0 text-primary" />
-                {f}
-              </li>
-            ))}
-          </ul>
+          <p className="mt-6 text-sm text-muted-foreground">
+            Contact OddGrid for confirmed specifications and availability. Online checkout is not yet enabled.
+          </p>
         </div>
       </div>
 
-      <Tabs defaultValue="specs" className="mt-16">
-        <TabsList>
-          <TabsTrigger value="specs">Specifications</TabsTrigger>
-          <TabsTrigger value="description">Description</TabsTrigger>
-          <TabsTrigger value="downloads">Downloads</TabsTrigger>
-        </TabsList>
-        <TabsContent value="specs" className="glass mt-6 rounded-3xl p-6">
-          <dl className="grid gap-x-10 gap-y-4 sm:grid-cols-2">
-            {Object.entries(product.specifications).map(([k, v]) => (
-              <div key={k} className="flex justify-between gap-6 border-b border-border pb-3">
-                <dt className="text-sm text-muted-foreground">{k}</dt>
-                <dd className="text-right text-sm font-medium">{v}</dd>
-              </div>
-            ))}
-          </dl>
-        </TabsContent>
-        <TabsContent value="description" className="glass mt-6 rounded-3xl p-6">
-          <p className="text-muted-foreground">{product.description}</p>
-          <p className="mt-4 text-muted-foreground">
-            Every unit we list is supported by OddGrid technical staff, ships with the full
-            manufacturer warranty and can be bundled into a larger system on request.
-          </p>
-        </TabsContent>
-        <TabsContent value="downloads" className="glass mt-6 rounded-3xl p-6">
-          <ul className="grid gap-3 sm:grid-cols-2">
-            {["Datasheet (PDF)", "User manual (PDF)", "Quick start guide", "Warranty terms"].map(
-              (d) => (
-                <li key={d}>
-                  <a
-                    href={WHATSAPP_URL}
-                    className="flex items-center gap-3 rounded-2xl border border-border px-4 py-3 text-sm transition-colors hover:border-primary/50"
-                  >
-                    <FileText className="size-4 text-primary" />
-                    <span className="flex-1">{d}</span>
-                    <Download className="size-4 text-muted-foreground" />
-                  </a>
-                </li>
-              ),
-            )}
-          </ul>
-        </TabsContent>
-      </Tabs>
-
-      {related.length > 0 && (
+      {false && related.length > 0 && (
         <section className="mt-20">
           <h2 className="text-2xl font-semibold sm:text-3xl">Related products</h2>
           <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
