@@ -73,3 +73,91 @@ export function displaySellingPrice(product: PublicSupabaseProduct): string | nu
     return null;
   }
 }
+
+/** Read-only catalogue relationships. Public RLS policies restrict returned rows. */
+async function publicCatalogueRows<T>(table: string, query: Record<string, string>): Promise<T[]> {
+  if (!SUPABASE_PUBLISHABLE_KEY) throw new Error("Missing VITE_SUPABASE_PUBLISHABLE_KEY");
+  const url = new URL(`${SUPABASE_URL}/rest/v1/${table}`);
+  for (const [key, value] of Object.entries(query)) url.searchParams.set(key, value);
+  const response = await fetch(url, {
+    headers: { apikey: SUPABASE_PUBLISHABLE_KEY, Accept: "application/json" },
+    signal: AbortSignal.timeout(15000),
+  });
+  if (!response.ok) throw new Error(`Supabase ${table} request failed (${response.status})`);
+  const rows: unknown = await response.json();
+  if (!Array.isArray(rows)) throw new Error("Unexpected Supabase response");
+  return rows as T[];
+}
+
+export interface PublicCategory {
+  id: string;
+  name: string;
+  slug: string;
+  parent_id: string | null;
+  is_active: boolean;
+}
+
+export interface PublicBrand {
+  id: string;
+  name: string;
+  slug: string;
+}
+
+export interface PublicProductImage {
+  id: string;
+  product_id: string;
+  storage_path: string | null;
+  external_url: string | null;
+  alt_text: string | null;
+  display_order: number;
+  is_primary: boolean;
+}
+
+export interface PublicProductSpecSection {
+  id: string;
+  name: string;
+  display_order: number;
+}
+
+export interface PublicProductSpec {
+  id: string;
+  section_id: string | null;
+  parent_spec_id: string | null;
+  label: string;
+  value: string | null;
+  display_order: number;
+}
+
+export function listPublicCategories(): Promise<PublicCategory[]> {
+  return publicCatalogueRows("categories", {
+    select: "id,name,slug,parent_id,is_active", is_active: "eq.true",
+    order: "display_order.asc", limit: "200",
+  });
+}
+
+export function listPublicBrands(): Promise<PublicBrand[]> {
+  return publicCatalogueRows("brands", {
+    select: "id,name,slug", is_active: "eq.true", limit: "200",
+  });
+}
+
+export async function getPublicProductDetails(productId: string): Promise<{
+  images: PublicProductImage[];
+  sections: PublicProductSpecSection[];
+  specs: PublicProductSpec[];
+}> {
+  const [images, sections, specs] = await Promise.all([
+    publicCatalogueRows<PublicProductImage>("product_images", {
+      select: "id,product_id,storage_path,external_url,alt_text,display_order,is_primary",
+      product_id: `eq.${productId}`, order: "display_order.asc",
+    }),
+    publicCatalogueRows<PublicProductSpecSection>("product_spec_sections", {
+      select: "id,name,display_order", product_id: `eq.${productId}`, order: "display_order.asc",
+    }),
+    publicCatalogueRows<PublicProductSpec>("product_specs", {
+      select: "id,section_id,parent_spec_id,label,value,display_order",
+      product_id: `eq.${productId}`, order: "display_order.asc",
+    }),
+  ]);
+  return { images, sections, specs };
+}
