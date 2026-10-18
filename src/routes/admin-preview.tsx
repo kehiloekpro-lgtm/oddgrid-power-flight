@@ -60,7 +60,7 @@ function AdminPreview() {
     if (!SUPABASE_PUBLISHABLE_KEY) { setMessage("Supabase publishable key is not configured."); return; }
     setMessage("Sending sign-in link…");
     try {
-      const response = await fetch(`${SUPABASE_URL}/auth/v1/otp`, {
+      const response = await fetch(`${SUPABASE_URL}/auth/v1/otp?redirect_to=${encodeURIComponent(window.location.origin + "/admin-preview")}`, {
         method: "POST",
         headers: { apikey: SUPABASE_PUBLISHABLE_KEY, "Content-Type": "application/json" },
         body: JSON.stringify({ email, create_user: false, email_redirect_to: window.location.origin + "/admin-preview" }),
