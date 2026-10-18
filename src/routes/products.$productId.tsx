@@ -18,7 +18,7 @@ import {
 } from "@/lib/products";
 import { useQuote } from "@/lib/quote-store";
 import { DEMO_REFRIGERATOR } from "@/lib/supabase-config";
-import { displaySellingPrice, getPublishedProductBySlug, type PublicSupabaseProduct } from "@/lib/supabase-products";
+import { displaySellingPrice, getPublishedProductBySlug, getPublicProductDetails, type PublicSupabaseProduct, type PublicProductImage, type PublicProductSpec, type PublicProductSpecSection } from "@/lib/supabase-products";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/products/$productId")({
@@ -50,13 +50,27 @@ function ProductPage() {
   const isDemo = product.id === DEMO_REFRIGERATOR.slug;
   const [catalogueStatus, setCatalogueStatus] = useState<"loading" | "unpublished" | "published" | "error">("loading");
   const [publishedProduct, setPublishedProduct] = useState<PublicSupabaseProduct | null>(null);
+  const [detailImages, setDetailImages] = useState<PublicProductImage[]>([]);
+  const [specs, setSpecs] = useState<PublicProductSpec[]>([]);
+  const [sections, setSections] = useState<PublicProductSpecSection[]>([]);
 
   useEffect(() => {
     let cancelled = false;
     setCatalogueStatus("loading");
     setPublishedProduct(null);
+    setDetailImages([]);
+    setSpecs([]);
+    setSections([]);
     getPublishedProductBySlug(product.id)
-      .then((record) => {
+      .then(async (record) => {
+        if (record) {
+          const details = await getPublicProductDetails(record.id);
+          if (!cancelled) {
+            setDetailImages(details.images);
+            setSpecs(details.specs);
+            setSections(details.sections);
+          }
+        }
         if (!cancelled) {
           setPublishedProduct(record);
           setCatalogueStatus(record ? "published" : "unpublished");
@@ -65,6 +79,15 @@ function ProductPage() {
       .catch(() => { if (!cancelled) setCatalogueStatus("error"); });
     return () => { cancelled = true; };
   }, [product.id]);
+
+  // Use HTTPS image URLs only. Storage paths need a verified bucket access strategy.
+  const approvedImages = detailImages
+    .filter((item) => item.external_url?.startsWith("https://"))
+    .sort((a, b) => Number(b.is_primary) - Number(a.is_primary) || a.display_order - b.display_order)
+    .map((item) => ({ src: item.external_url!, alt: item.alt_text ?? publishedProduct?.name ?? "Product" }));
+  const gallery = approvedImages.length
+    ? approvedImages
+    : images.map((src) => ({ src, alt: publishedProduct?.name ?? "Product" }));
 
   const onMove = (e: React.MouseEvent<HTMLDivElement>) => {
     const rect = frame.current?.getBoundingClientRect();
@@ -116,8 +139,8 @@ function ProductPage() {
             className="glass relative aspect-4/3 overflow-hidden rounded-3xl bg-surface-2"
           >
             <img
-              src={images[index]}
-              alt={product.name}
+              src={gallery[index]?.src ?? gallery[0]?.src}
+              alt={gallery[index]?.alt ?? publishedProduct.name}
               width={1200}
               height={900}
               className="h-full w-full object-cover transition-transform duration-200"
@@ -135,7 +158,7 @@ function ProductPage() {
             </span>
           </div>
           <div className="mt-4 flex gap-3">
-            {images.map((img, i) => (
+            {gallery.map((img, i) => (
               <button
                 key={i}
                 onClick={() => setIndex(i)}
@@ -146,7 +169,7 @@ function ProductPage() {
                 aria-label={`View image ${i + 1}`}
               >
                 <img
-                  src={img}
+                  src={img.src}
                   alt=""
                   loading="lazy"
                   width={1200}
@@ -169,11 +192,33 @@ function ProductPage() {
             </span>
             {publishedProduct.sku && <span className="text-xs text-muted-foreground">SKU {publishedProduct.sku}</span>}
           </div>
+          {publishedProduct.description && <p className="mt-6 whitespace-pre-line text-sm leading-relaxed text-muted-foreground">{publishedProduct.description}</p>}
           <p className="mt-6 text-sm text-muted-foreground">
-            Contact OddGrid for confirmed specifications and availability. Online checkout is not yet enabled.
+            Contact OddGrid to confirm current availability. Online checkout is not yet enabled.
           </p>
         </div>
       </div>
+
+      {specs.length > 0 && (
+        <section className="mt-16">
+          <h2 className="text-2xl font-semibold">Technical specifications</h2>
+          <div className="mt-6 grid gap-6 md:grid-cols-2">
+            {[...sections.map((section) => ({ id: section.id, name: section.name })),
+              { id: null, name: "Additional specifications" }].map((section) => {
+              const entries = specs.filter((spec) => spec.section_id === section.id && spec.value);
+              if (!entries.length) return null;
+              return <div key={section.id ?? "other"} className="glass rounded-2xl p-5">
+                <h3 className="mb-4 font-semibold">{section.name}</h3>
+                <dl className="space-y-3">
+                  {entries.map((spec) => <div key={spec.id} className="flex justify-between gap-6 border-b border-border pb-2 text-sm">
+                    <dt className="text-muted-foreground">{spec.label}</dt><dd className="text-right">{spec.value}</dd>
+                  </div>)}
+                </dl>
+              </div>;
+            })}
+          </div>
+        </section>
+      )}
 
       {false && related.length > 0 && (
         <section className="mt-20">
