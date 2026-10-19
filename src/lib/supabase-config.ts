@@ -10,3 +10,4 @@ export const DEMO_REFRIGERATOR = {
   slug: "solar-fridge-210l",
   name: "210L Solar Refrigerator",
 } as const;
+// Branch-only Netlify preview trigger: no runtime behavior changes.
