@@ -172,11 +172,11 @@ export async function getPublicProductDetails(productId: string, accessToken?: s
     }, accessToken),
     publicCatalogueRows<PublicProductSpecSection>("product_spec_sections", {
       select: "id,name,display_order", product_id: `eq.${productId}`, order: "display_order.asc",
-    }),
+    }, accessToken),
     publicCatalogueRows<PublicProductSpec>("product_specs", {
       select: "id,section_id,parent_spec_id,label,value,display_order",
       product_id: `eq.${productId}`, order: "display_order.asc",
-    }),
+    }, accessToken),
   ]);
   return { images, sections, specs };
 }
