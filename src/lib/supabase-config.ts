@@ -11,3 +11,4 @@ export const DEMO_REFRIGERATOR = {
   name: "210L Solar Refrigerator",
 } as const;
 // Branch-only Netlify preview trigger: no runtime behavior changes.
+// Netlify branch redeploy trigger after authenticated specifications fix.
