@@ -1,7 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Clock, Mail, MapPin, MessageCircle, Phone } from "lucide-react";
-import { useState } from "react";
-import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -33,28 +31,18 @@ export const Route = createFileRoute("/contact")({
 });
 
 function ContactPage() {
-  const [sending, setSending] = useState(false);
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6">
       <h1 className="text-4xl font-semibold sm:text-5xl">Let's talk</h1>
       <p className="mt-4 max-w-2xl text-muted-foreground">
-        Send us the requirement — site load, flight mission, fleet size — and a specialist will come
-        back with a specification and pricing.
+        Our enquiry form is not connected to a delivery service yet. Please do not submit personal information until we activate a verified contact channel.
       </p>
 
       <div className="mt-12 grid gap-8 lg:grid-cols-[1.3fr_1fr]">
         <form
           className="glass grid gap-5 rounded-4xl p-6 sm:p-8"
-          onSubmit={(e) => {
-            e.preventDefault();
-            setSending(true);
-            setTimeout(() => {
-              setSending(false);
-              (e.target as HTMLFormElement).reset();
-              toast.success("Enquiry sent. We reply within one business day.");
-            }, 600);
-          }}
+          onSubmit={(e) => e.preventDefault()}
         >
           <div className="grid gap-5 sm:grid-cols-2">
             <Field id="name" label="Full name" placeholder="Alex Mercer" />
@@ -71,8 +59,8 @@ function ContactPage() {
               placeholder="Tell us about the site, mission or fleet you're equipping."
             />
           </div>
-          <Button type="submit" size="lg" disabled={sending} className="w-fit">
-            {sending ? "Sending…" : "Send enquiry"}
+          <Button type="submit" size="lg" disabled className="w-fit">
+            Enquiries not yet available
           </Button>
         </form>
 
