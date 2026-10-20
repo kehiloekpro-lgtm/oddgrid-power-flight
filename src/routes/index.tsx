@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import {
@@ -11,9 +12,10 @@ import {
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { ProductCard } from "@/components/site/ProductCard";
+import { SupabaseProductCard } from "@/components/site/SupabaseProductCard";
+import { loadFeaturedProducts, type FeaturedProduct } from "@/lib/featured-products";
 import { Reveal } from "@/components/site/Reveal";
-import { byCategory, solarHvacCategories, subZeroCategories } from "@/lib/products";
+import { solarHvacCategories, subZeroCategories } from "@/lib/products";
 import heroImg from "@/assets/hero-solar-cooling.jpg";
 import catPower from "@/assets/cat-refrigeration.jpg";
 import catDrones from "@/assets/cat-solar-hvac.jpg";
@@ -57,8 +59,27 @@ const why = [
 ];
 
 function Index() {
-  const cooling = byCategory("sub-zero").slice(0, 4);
-  const power = byCategory("back-up-power").slice(0, 4);
+  const [featured, setFeatured] = useState<{
+    cooling: FeaturedProduct[];
+    power: FeaturedProduct[];
+  }>({ cooling: [], power: [] });
+  const [loadState, setLoadState] = useState<"loading" | "ready" | "error">("loading");
+  useEffect(() => {
+    let cancelled = false;
+    loadFeaturedProducts()
+      .then((result) => {
+        if (!cancelled) {
+          setFeatured(result);
+          setLoadState("ready");
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setLoadState("error");
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   return (
     <>
@@ -163,13 +184,15 @@ function Index() {
         title="Featured refrigeration"
         subtitle="Solar fridges, freezers and coolers built for off-grid cold."
         to="/sub-zero"
-        products={cooling}
+        products={featured.cooling}
+        loadState={loadState}
       />
       <FeaturedGrid
         title="Supporting power"
         subtitle="Portable power stations to back up your cooling."
         to="/back-up-power"
-        products={power}
+        products={featured.power}
+        loadState={loadState}
       />
 
       <section className="mx-auto max-w-7xl px-4 py-20 sm:px-6">
@@ -253,11 +276,13 @@ function FeaturedGrid({
   subtitle,
   to,
   products,
+  loadState,
 }: {
   title: string;
   subtitle: string;
   to: string;
-  products: ReturnType<typeof byCategory>;
+  products: FeaturedProduct[];
+  loadState: "loading" | "ready" | "error";
 }) {
   return (
     <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6">
@@ -274,10 +299,31 @@ function FeaturedGrid({
           </Button>
         </div>
       </Reveal>
+      {loadState === "loading" && (
+        <p role="status" className="glass mt-8 rounded-3xl p-10 text-center text-muted-foreground">
+          Loading catalogue…
+        </p>
+      )}
+      {loadState === "error" && (
+        <p role="alert" className="glass mt-8 rounded-3xl p-10 text-center text-muted-foreground">
+          Catalogue temporarily unavailable. Please try again later.
+        </p>
+      )}
+      {loadState === "ready" && products.length === 0 && (
+        <div className="glass mt-8 rounded-3xl p-10 text-center">
+          <h3 className="text-xl font-semibold">Our catalogue is being prepared</h3>
+          <p className="mt-3 text-muted-foreground">
+            Published products will appear here when ready. Explore the category to learn more.
+          </p>
+          <Link to={to} className="mt-5 inline-block text-primary underline">
+            Explore category
+          </Link>
+        </div>
+      )}
       <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
         {products.map((p, i) => (
-          <Reveal key={p.id} delay={i * 0.06}>
-            <ProductCard product={p} />
+          <Reveal key={p.product.id} delay={i * 0.06}>
+            <SupabaseProductCard item={p} />
           </Reveal>
         ))}
       </div>
