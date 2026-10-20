@@ -1,8 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 
+import { addProductToGuestCart } from "@/lib/guest-cart";
+import { DEMO_REFRIGERATOR } from "@/lib/supabase-config";
 import { imageMap } from "@/lib/products";
-import { displaySellingPrice, getPublishedProductBySlug, getPublicProductDetails, listPublicCategories, resolvePublicProductImage, type PublicCategory, type PublicSupabaseProduct, type PublicProductImage, type PublicProductSpec, type PublicProductSpecSection } from "@/lib/supabase-products";
+import { isPurchasable, displaySellingPrice, getPublishedProductBySlug, getPublicProductDetails, listPublicCategories, resolvePublicProductImage, type PublicCategory, type PublicSupabaseProduct, type PublicProductImage, type PublicProductSpec, type PublicProductSpecSection } from "@/lib/supabase-products";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/products/$productId")({
@@ -19,6 +21,8 @@ export const Route = createFileRoute("/products/$productId")({
 
 function ProductPage() {
   const { productId } = Route.useParams();
+  const [addingToCart, setAddingToCart] = useState(false);
+  const [cartMessage, setCartMessage] = useState<{ ok: boolean; text: string } | null>(null);
   const [index, setIndex] = useState(0);
   const [zoom, setZoom] = useState<{ x: number; y: number } | null>(null);
   const frame = useRef<HTMLDivElement>(null);
@@ -32,6 +36,7 @@ function ProductPage() {
   useEffect(() => {
     let cancelled = false;
     setCatalogueStatus("loading");
+    setCartMessage(null);
     setPublishedProduct(null);
     setDetailImages([]);
     setSpecs([]);
@@ -170,9 +175,28 @@ function ProductPage() {
             {publishedProduct.sku && <span className="text-xs text-muted-foreground">SKU {publishedProduct.sku}</span>}
           </div>
           {publishedProduct.description && <p className="mt-6 whitespace-pre-line text-sm leading-relaxed text-muted-foreground">{publishedProduct.description}</p>}
-          <p className="mt-6 text-sm text-muted-foreground">
-            Contact OddGrid to confirm current availability. Online checkout is not yet enabled.
-          </p>
+          {isPurchasable(publishedProduct) && publishedProduct.id !== DEMO_REFRIGERATOR.id && publishedProduct.slug !== DEMO_REFRIGERATOR.slug ? (
+            <button
+              type="button"
+              disabled={addingToCart}
+              aria-busy={addingToCart}
+              className="mt-6 rounded-xl bg-primary px-6 py-3 font-semibold text-primary-foreground disabled:cursor-wait disabled:opacity-60"
+              onClick={async () => {
+                if (addingToCart) return;
+                setAddingToCart(true);
+                setCartMessage(null);
+                try {
+                  await addProductToGuestCart(publishedProduct);
+                  setCartMessage({ ok: true, text: `${publishedProduct.name} added to your cart.` });
+                } catch (error) {
+                  setCartMessage({ ok: false, text: error instanceof Error ? error.message : "Could not confirm the cart update. Please try again later." });
+                } finally { setAddingToCart(false); }
+              }}
+            >
+              {addingToCart ? "Adding…" : "Add to Cart"}
+            </button>
+          ) : <p className="mt-6 text-sm text-muted-foreground">Contact OddGrid to confirm availability and purchasing options.</p>}
+          {cartMessage && <p role={cartMessage.ok ? "status" : "alert"} className="mt-4 text-sm">{cartMessage.text}</p>}
         </div>
       </div>
 
