@@ -12,7 +12,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { listPublishedProducts, displaySellingPrice, type PublicSupabaseProduct } from "@/lib/supabase-products";
-import { useQuote } from "@/lib/quote-store";
+import { useGuestCart } from "@/hooks/use-guest-cart";
 import { cn } from "@/lib/utils";
 
 
@@ -33,7 +33,7 @@ export function Header() {
   const [query, setQuery] = useState("");
   const [published, setPublished] = useState<PublicSupabaseProduct[]>([]);
   const [searchStatus, setSearchStatus] = useState<"loading" | "ready" | "error">("loading");
-  const { count } = useQuote();
+  const { count } = useGuestCart();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
   useEffect(() => setOpen(false), [pathname]);
@@ -137,8 +137,8 @@ export function Header() {
             </DialogContent>
           </Dialog>
 
-          <Button asChild variant="ghost" size="icon" className="relative" aria-label="Quote list">
-            <Link to="/quote">
+          <Button asChild variant="ghost" size="icon" className="relative" aria-label="Shopping cart">
+            <Link to="/cart">
               <ShoppingCart className="size-5" />
               {count > 0 && (
                 <span className="absolute -top-0.5 -right-0.5 grid size-4.5 place-items-center rounded-full bg-primary text-[10px] font-semibold text-primary-foreground">

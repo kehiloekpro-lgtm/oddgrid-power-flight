@@ -189,3 +189,33 @@ export async function getPreviewProductById(id: string, accessToken: string): Pr
   }, accessToken);
   return rows[0] ?? null;
 }
+
+/** Public catalogue display only: never calculate or submit checkout totals here. */
+export async function getCartCatalogueDetails<T extends { product_id: string; variant_id: string | null }>(items: T[], cartCurrency: string): Promise<(T & {
+  name?: string; slug?: string; configuration?: string; unitPrice?: number; currency?: string; available?: boolean;
+})[]> {
+  const ids = [...new Set(items.map((item) => item.product_id))];
+  const variantIds = [...new Set(items.flatMap((item) => item.variant_id ? [item.variant_id] : []))];
+  const [products, variants] = await Promise.all([
+    publicCatalogueRows<PublicSupabaseProduct>("products", {
+      select: "id,name,slug,currency,selling_price,sale_type,status,availability", id: `in.(${ids.join(",")})`, status: "eq.active",
+    }),
+    variantIds.length ? publicCatalogueRows<{ id: string; product_id: string; variant_name: string; currency: string; selling_price: number | null; availability: string; is_active: boolean }>("product_variants", {
+      select: "id,product_id,variant_name,currency,selling_price,availability,is_active", id: `in.(${variantIds.join(",")})`,
+    }) : Promise.resolve([]),
+  ]);
+  return items.map((item) => {
+    const product = products.find((row) => row.id === item.product_id);
+    const variant = variants.find((row) => row.id === item.variant_id && row.product_id === item.product_id);
+    const priced = item.variant_id ? variant : product;
+    const price = priced?.selling_price;
+    return { ...item, name: product?.name, slug: product?.slug,
+      configuration: variant?.variant_name,
+      unitPrice: typeof price === "number" && Number.isFinite(price) && price > 0 && priced?.currency === cartCurrency ? price : undefined,
+      currency: priced?.currency,
+      available: !!product && product.status === "active" && product.sale_type === "direct" &&
+        typeof price === "number" && Number.isFinite(price) && price > 0 && priced?.currency === cartCurrency && priced.availability === "confirmed_available" &&
+        (!item.variant_id || !!variant && variant.is_active),
+    };
+  });
+}

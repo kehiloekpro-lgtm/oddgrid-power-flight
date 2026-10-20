@@ -9,74 +9,27 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as TermsRouteImport } from './routes/terms'
-import { Route as SubZeroRouteImport } from './routes/sub-zero'
-import { Route as SolarHvacRouteImport } from './routes/solar-hvac'
-import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
-import { Route as QuoteRouteImport } from './routes/quote'
-import { Route as PrivacyRouteImport } from './routes/privacy'
-import { Route as PowerSolutionsRouteImport } from './routes/power-solutions'
-import { Route as HybridInvertersRouteImport } from './routes/hybrid-inverters'
-import { Route as DronesRouteImport } from './routes/drones'
-import { Route as ContactRouteImport } from './routes/contact'
-import { Route as BackUpPowerRouteImport } from './routes/back-up-power'
-import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AboutRouteImport } from './routes/about'
+import { Route as AdminPreviewRouteImport } from './routes/admin-preview'
+import { Route as BackUpPowerRouteImport } from './routes/back-up-power'
+import { Route as CartRouteImport } from './routes/cart'
+import { Route as ContactRouteImport } from './routes/contact'
+import { Route as DronesRouteImport } from './routes/drones'
+import { Route as HybridInvertersRouteImport } from './routes/hybrid-inverters'
+import { Route as PowerSolutionsRouteImport } from './routes/power-solutions'
+import { Route as PrivacyRouteImport } from './routes/privacy'
+import { Route as QuoteRouteImport } from './routes/quote'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as SolarHvacRouteImport } from './routes/solar-hvac'
+import { Route as SolarRefrigerationInterestRouteImport } from './routes/solar-refrigeration-interest'
+import { Route as SubZeroRouteImport } from './routes/sub-zero'
+import { Route as TermsRouteImport } from './routes/terms'
 import { Route as ProductsProductIdRouteImport } from './routes/products.$productId'
 
-const TermsRoute = TermsRouteImport.update({
-  id: '/terms',
-  path: '/terms',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SubZeroRoute = SubZeroRouteImport.update({
-  id: '/sub-zero',
-  path: '/sub-zero',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SolarHvacRoute = SolarHvacRouteImport.update({
-  id: '/solar-hvac',
-  path: '/solar-hvac',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
-  id: '/sitemap.xml',
-  path: '/sitemap.xml',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const QuoteRoute = QuoteRouteImport.update({
-  id: '/quote',
-  path: '/quote',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PrivacyRoute = PrivacyRouteImport.update({
-  id: '/privacy',
-  path: '/privacy',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const PowerSolutionsRoute = PowerSolutionsRouteImport.update({
-  id: '/power-solutions',
-  path: '/power-solutions',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const HybridInvertersRoute = HybridInvertersRouteImport.update({
-  id: '/hybrid-inverters',
-  path: '/hybrid-inverters',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DronesRoute = DronesRouteImport.update({
-  id: '/drones',
-  path: '/drones',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ContactRoute = ContactRouteImport.update({
-  id: '/contact',
-  path: '/contact',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const BackUpPowerRoute = BackUpPowerRouteImport.update({
-  id: '/back-up-power',
-  path: '/back-up-power',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AboutRoute = AboutRouteImport.update({
@@ -84,9 +37,75 @@ const AboutRoute = AboutRouteImport.update({
   path: '/about',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const AdminPreviewRoute = AdminPreviewRouteImport.update({
+  id: '/admin-preview',
+  path: '/admin-preview',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BackUpPowerRoute = BackUpPowerRouteImport.update({
+  id: '/back-up-power',
+  path: '/back-up-power',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CartRoute = CartRouteImport.update({
+  id: '/cart',
+  path: '/cart',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ContactRoute = ContactRouteImport.update({
+  id: '/contact',
+  path: '/contact',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DronesRoute = DronesRouteImport.update({
+  id: '/drones',
+  path: '/drones',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HybridInvertersRoute = HybridInvertersRouteImport.update({
+  id: '/hybrid-inverters',
+  path: '/hybrid-inverters',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PowerSolutionsRoute = PowerSolutionsRouteImport.update({
+  id: '/power-solutions',
+  path: '/power-solutions',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const QuoteRoute = QuoteRouteImport.update({
+  id: '/quote',
+  path: '/quote',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SolarHvacRoute = SolarHvacRouteImport.update({
+  id: '/solar-hvac',
+  path: '/solar-hvac',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SolarRefrigerationInterestRoute =
+  SolarRefrigerationInterestRouteImport.update({
+    id: '/solar-refrigeration-interest',
+    path: '/solar-refrigeration-interest',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const SubZeroRoute = SubZeroRouteImport.update({
+  id: '/sub-zero',
+  path: '/sub-zero',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProductsProductIdRoute = ProductsProductIdRouteImport.update({
@@ -98,7 +117,9 @@ const ProductsProductIdRoute = ProductsProductIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/admin-preview': typeof AdminPreviewRoute
   '/back-up-power': typeof BackUpPowerRoute
+  '/cart': typeof CartRoute
   '/contact': typeof ContactRoute
   '/drones': typeof DronesRoute
   '/hybrid-inverters': typeof HybridInvertersRoute
@@ -107,6 +128,7 @@ export interface FileRoutesByFullPath {
   '/quote': typeof QuoteRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/solar-hvac': typeof SolarHvacRoute
+  '/solar-refrigeration-interest': typeof SolarRefrigerationInterestRoute
   '/sub-zero': typeof SubZeroRoute
   '/terms': typeof TermsRoute
   '/products/$productId': typeof ProductsProductIdRoute
@@ -114,7 +136,9 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/admin-preview': typeof AdminPreviewRoute
   '/back-up-power': typeof BackUpPowerRoute
+  '/cart': typeof CartRoute
   '/contact': typeof ContactRoute
   '/drones': typeof DronesRoute
   '/hybrid-inverters': typeof HybridInvertersRoute
@@ -123,6 +147,7 @@ export interface FileRoutesByTo {
   '/quote': typeof QuoteRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/solar-hvac': typeof SolarHvacRoute
+  '/solar-refrigeration-interest': typeof SolarRefrigerationInterestRoute
   '/sub-zero': typeof SubZeroRoute
   '/terms': typeof TermsRoute
   '/products/$productId': typeof ProductsProductIdRoute
@@ -131,7 +156,9 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/admin-preview': typeof AdminPreviewRoute
   '/back-up-power': typeof BackUpPowerRoute
+  '/cart': typeof CartRoute
   '/contact': typeof ContactRoute
   '/drones': typeof DronesRoute
   '/hybrid-inverters': typeof HybridInvertersRoute
@@ -140,6 +167,7 @@ export interface FileRoutesById {
   '/quote': typeof QuoteRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/solar-hvac': typeof SolarHvacRoute
+  '/solar-refrigeration-interest': typeof SolarRefrigerationInterestRoute
   '/sub-zero': typeof SubZeroRoute
   '/terms': typeof TermsRoute
   '/products/$productId': typeof ProductsProductIdRoute
@@ -149,7 +177,9 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/about'
+    | '/admin-preview'
     | '/back-up-power'
+    | '/cart'
     | '/contact'
     | '/drones'
     | '/hybrid-inverters'
@@ -158,6 +188,7 @@ export interface FileRouteTypes {
     | '/quote'
     | '/sitemap.xml'
     | '/solar-hvac'
+    | '/solar-refrigeration-interest'
     | '/sub-zero'
     | '/terms'
     | '/products/$productId'
@@ -165,7 +196,9 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/about'
+    | '/admin-preview'
     | '/back-up-power'
+    | '/cart'
     | '/contact'
     | '/drones'
     | '/hybrid-inverters'
@@ -174,6 +207,7 @@ export interface FileRouteTypes {
     | '/quote'
     | '/sitemap.xml'
     | '/solar-hvac'
+    | '/solar-refrigeration-interest'
     | '/sub-zero'
     | '/terms'
     | '/products/$productId'
@@ -181,7 +215,9 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/about'
+    | '/admin-preview'
     | '/back-up-power'
+    | '/cart'
     | '/contact'
     | '/drones'
     | '/hybrid-inverters'
@@ -190,6 +226,7 @@ export interface FileRouteTypes {
     | '/quote'
     | '/sitemap.xml'
     | '/solar-hvac'
+    | '/solar-refrigeration-interest'
     | '/sub-zero'
     | '/terms'
     | '/products/$productId'
@@ -198,7 +235,9 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
+  AdminPreviewRoute: typeof AdminPreviewRoute
   BackUpPowerRoute: typeof BackUpPowerRoute
+  CartRoute: typeof CartRoute
   ContactRoute: typeof ContactRoute
   DronesRoute: typeof DronesRoute
   HybridInvertersRoute: typeof HybridInvertersRoute
@@ -207,6 +246,7 @@ export interface RootRouteChildren {
   QuoteRoute: typeof QuoteRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   SolarHvacRoute: typeof SolarHvacRoute
+  SolarRefrigerationInterestRoute: typeof SolarRefrigerationInterestRoute
   SubZeroRoute: typeof SubZeroRoute
   TermsRoute: typeof TermsRoute
   ProductsProductIdRoute: typeof ProductsProductIdRoute
@@ -214,81 +254,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/terms': {
-      id: '/terms'
-      path: '/terms'
-      fullPath: '/terms'
-      preLoaderRoute: typeof TermsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/sub-zero': {
-      id: '/sub-zero'
-      path: '/sub-zero'
-      fullPath: '/sub-zero'
-      preLoaderRoute: typeof SubZeroRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/solar-hvac': {
-      id: '/solar-hvac'
-      path: '/solar-hvac'
-      fullPath: '/solar-hvac'
-      preLoaderRoute: typeof SolarHvacRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/sitemap.xml': {
-      id: '/sitemap.xml'
-      path: '/sitemap.xml'
-      fullPath: '/sitemap.xml'
-      preLoaderRoute: typeof SitemapDotxmlRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/quote': {
-      id: '/quote'
-      path: '/quote'
-      fullPath: '/quote'
-      preLoaderRoute: typeof QuoteRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/privacy': {
-      id: '/privacy'
-      path: '/privacy'
-      fullPath: '/privacy'
-      preLoaderRoute: typeof PrivacyRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/power-solutions': {
-      id: '/power-solutions'
-      path: '/power-solutions'
-      fullPath: '/power-solutions'
-      preLoaderRoute: typeof PowerSolutionsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/hybrid-inverters': {
-      id: '/hybrid-inverters'
-      path: '/hybrid-inverters'
-      fullPath: '/hybrid-inverters'
-      preLoaderRoute: typeof HybridInvertersRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/drones': {
-      id: '/drones'
-      path: '/drones'
-      fullPath: '/drones'
-      preLoaderRoute: typeof DronesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/contact': {
-      id: '/contact'
-      path: '/contact'
-      fullPath: '/contact'
-      preLoaderRoute: typeof ContactRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/back-up-power': {
-      id: '/back-up-power'
-      path: '/back-up-power'
-      fullPath: '/back-up-power'
-      preLoaderRoute: typeof BackUpPowerRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/about': {
@@ -298,11 +268,102 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AboutRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/admin-preview': {
+      id: '/admin-preview'
+      path: '/admin-preview'
+      fullPath: '/admin-preview'
+      preLoaderRoute: typeof AdminPreviewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/back-up-power': {
+      id: '/back-up-power'
+      path: '/back-up-power'
+      fullPath: '/back-up-power'
+      preLoaderRoute: typeof BackUpPowerRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cart': {
+      id: '/cart'
+      path: '/cart'
+      fullPath: '/cart'
+      preLoaderRoute: typeof CartRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/contact': {
+      id: '/contact'
+      path: '/contact'
+      fullPath: '/contact'
+      preLoaderRoute: typeof ContactRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/drones': {
+      id: '/drones'
+      path: '/drones'
+      fullPath: '/drones'
+      preLoaderRoute: typeof DronesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/hybrid-inverters': {
+      id: '/hybrid-inverters'
+      path: '/hybrid-inverters'
+      fullPath: '/hybrid-inverters'
+      preLoaderRoute: typeof HybridInvertersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/power-solutions': {
+      id: '/power-solutions'
+      path: '/power-solutions'
+      fullPath: '/power-solutions'
+      preLoaderRoute: typeof PowerSolutionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/quote': {
+      id: '/quote'
+      path: '/quote'
+      fullPath: '/quote'
+      preLoaderRoute: typeof QuoteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/solar-hvac': {
+      id: '/solar-hvac'
+      path: '/solar-hvac'
+      fullPath: '/solar-hvac'
+      preLoaderRoute: typeof SolarHvacRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/solar-refrigeration-interest': {
+      id: '/solar-refrigeration-interest'
+      path: '/solar-refrigeration-interest'
+      fullPath: '/solar-refrigeration-interest'
+      preLoaderRoute: typeof SolarRefrigerationInterestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sub-zero': {
+      id: '/sub-zero'
+      path: '/sub-zero'
+      fullPath: '/sub-zero'
+      preLoaderRoute: typeof SubZeroRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/products/$productId': {
@@ -318,7 +379,9 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
+  AdminPreviewRoute: AdminPreviewRoute,
   BackUpPowerRoute: BackUpPowerRoute,
+  CartRoute: CartRoute,
   ContactRoute: ContactRoute,
   DronesRoute: DronesRoute,
   HybridInvertersRoute: HybridInvertersRoute,
@@ -327,6 +390,7 @@ const rootRouteChildren: RootRouteChildren = {
   QuoteRoute: QuoteRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   SolarHvacRoute: SolarHvacRoute,
+  SolarRefrigerationInterestRoute: SolarRefrigerationInterestRoute,
   SubZeroRoute: SubZeroRoute,
   TermsRoute: TermsRoute,
   ProductsProductIdRoute: ProductsProductIdRoute,

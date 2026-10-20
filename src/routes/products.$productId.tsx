@@ -196,7 +196,7 @@ function ProductPage() {
               {addingToCart ? "Adding…" : "Add to Cart"}
             </button>
           ) : <p className="mt-6 text-sm text-muted-foreground">Contact OddGrid to confirm availability and purchasing options.</p>}
-          {cartMessage && <p role={cartMessage.ok ? "status" : "alert"} className="mt-4 text-sm">{cartMessage.text}</p>}
+          {cartMessage && <p role={cartMessage.ok ? "status" : "alert"} className="mt-4 text-sm">{cartMessage.text}{cartMessage.ok && <> <Link to="/cart" className="text-primary underline">View cart</Link></>}</p>}
         </div>
       </div>
 
