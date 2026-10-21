@@ -6,6 +6,7 @@ import { prepareGuestCheckout } from "@/lib/checkout-prepare";
 import {
   CHECKOUT_CONTRACT_REVIEWED,
   checkoutFields,
+  requiredCheckoutFields,
   type CheckoutDetails,
   type PreparedCheckout,
 } from "@/lib/checkout-contract";
@@ -21,14 +22,14 @@ export const Route = createFileRoute("/checkout")({
 });
 const labels: Record<keyof CheckoutDetails, string> = {
   email: "Email",
-  phone: "Contact phone",
+  phone: "Contact phone (optional)",
   shipping_recipient_name: "Recipient name",
-  shipping_phone: "Delivery phone",
+  shipping_phone: "Delivery phone (optional)",
   shipping_line1: "Address line 1",
   shipping_line2: "Address line 2 (optional)",
   shipping_city: "City",
-  shipping_region: "Region / state",
-  shipping_postal_code: "Postal code",
+  shipping_region: "Region / state (optional)",
+  shipping_postal_code: "Postal code (optional)",
   shipping_country_code: "Country code (two letters)",
 };
 function CheckoutPage() {
@@ -146,12 +147,7 @@ function CheckoutPage() {
               </p>
               <form onSubmit={submit} className="mt-8">
                 <fieldset
-                  disabled={
-                    !CHECKOUT_CONTRACT_REVIEWED ||
-                    submitting ||
-                    busy ||
-                    items.some((item) => item.available !== true)
-                  }
+                  disabled={!CHECKOUT_CONTRACT_REVIEWED || submitting || busy}
                   className="grid gap-4 sm:grid-cols-2"
                 >
                   <legend className="mb-4 text-xl font-semibold">
@@ -163,7 +159,7 @@ function CheckoutPage() {
                       <input
                         name={key}
                         type={key === "email" ? "email" : key.includes("phone") ? "tel" : "text"}
-                        required={key !== "shipping_line2"}
+                        required={requiredCheckoutFields.has(key)}
                         maxLength={key === "shipping_country_code" ? 2 : 250}
                         pattern={key === "shipping_country_code" ? "[A-Z]{2}" : undefined}
                         className="rounded-xl border border-border bg-background px-4 py-3 disabled:opacity-50"

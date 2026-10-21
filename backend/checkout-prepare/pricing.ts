@@ -74,8 +74,9 @@ export function snapshotCart(
       if (!variant || variant.is_active !== true)
         throw new Error("Selected variant is invalid or inactive");
       selected = variant;
-    } else if (variants.some((row) => row.product_id === product.id))
-      throw new Error("Product configuration must be selected");
+    }
+    // A base line uses the parent price/availability even when variants exist.
+    // This permits the exported cart's distinct base and selected-variant lines.
     if (selected.availability !== "confirmed_available" || selected.currency.trim() !== currency)
       throw new Error("Availability or currency mismatch");
     const unit = cents(selected.selling_price);

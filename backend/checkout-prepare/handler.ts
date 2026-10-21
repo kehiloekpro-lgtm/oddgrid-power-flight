@@ -11,13 +11,10 @@ import {
   type VariantRecord,
 } from "./pricing.ts";
 
-/** Adapter is intentionally unbound until current bridge, DDL and expiry rules are reviewed.
- * Implement with server-only service-role access, preserving current permissions.
- */
+/** Server-only adapter to the migrated checkout bridge. Deployment approval remains closed. */
 export interface CheckoutBackend {
-  /** Query carts with BOTH id and guest_token as in cart-api. Apply verified expiry rules.
-   * Normalize the verified expiry to expiresAt; do not infer a database column name.
-   * Reject missing/unauthorized carts with the same null result, never log the token.
+  /** Query guest carts with BOTH UUIDs; no invented cart expiry. DB repeats authorization
+   * under the cart lock, and rejects old signatures without guest proof.
    */
   authorizeGuestCart(
     cartId: string,
@@ -26,7 +23,6 @@ export interface CheckoutBackend {
     id: string;
     currency: string;
     status: string;
-    expiresAt: string;
     items: CheckoutCartItem[];
     products: ProductRecord[];
     variants: VariantRecord[];
@@ -36,6 +32,11 @@ export interface CheckoutBackend {
    * Never create a payment attempt or order. Preflight snapshotCart alone is insufficient.
    */
   prepare(request: CheckoutRequest): Promise<PreparedCheckout>;
+}
+export class CheckoutRejection extends Error {
+  constructor(readonly status: 404 | 409) {
+    super("Checkout preparation rejected");
+  }
 }
 export interface CheckoutOptions {
   enabled: boolean;
@@ -92,12 +93,7 @@ export async function handleCheckoutPrepare(
     const cart = await options.backend.authorizeGuestCart(request.cart_id, request.guest_token);
     if (!cart || cart.id !== request.cart_id)
       return json({ error: "Cart not found or unauthorized" }, 404);
-    if (
-      cart.status !== "active" ||
-      !Number.isFinite(Date.parse(cart.expiresAt)) ||
-      Date.parse(cart.expiresAt) <= Date.now()
-    )
-      return json({ error: "Cart is inactive or expired" }, 409);
+    if (cart.status !== "active") return json({ error: "Cart is not active" }, 409);
     try {
       snapshotCart(cart.items, cart.products, cart.variants, cart.currency);
     } catch {
@@ -107,7 +103,17 @@ export async function handleCheckoutPrepare(
     const checkout = readPreparedCheckout(prepared, cart.id, cart.currency);
     // Only DB-returned amounts are sent. No payment/order actions or URLs in this boundary.
     return json({ checkout, payment_initiated: false }, 200);
-  } catch {
+  } catch (error) {
+    if (error instanceof CheckoutRejection)
+      return json(
+        {
+          error:
+            error.status === 404
+              ? "Cart not found or unauthorized"
+              : "Checkout preparation was rejected. Refresh your cart.",
+        },
+        error.status,
+      );
     // Do not leak database diagnostics, keys, cart tokens or customer contact information.
     return json(
       { error: "Could not confirm checkout preparation. No automatic retry was made." },

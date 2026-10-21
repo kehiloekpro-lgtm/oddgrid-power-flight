@@ -11,15 +11,22 @@ const source = (path) => readFileSync(path, "utf8");
 const contractUrl = dataUrl(compile(source("src/lib/checkout-contract.ts")));
 const pricingUrl = dataUrl(compile(source("backend/checkout-prepare/pricing.ts")));
 const { snapshotCart } = await import(pricingUrl);
-const { handleCheckoutPrepare } = await import(
-  dataUrl(
-    compile(
-      source("backend/checkout-prepare/handler.ts")
-        .replace('"../../src/lib/checkout-contract.ts"', JSON.stringify(contractUrl))
-        .replace('"./pricing.ts"', JSON.stringify(pricingUrl)),
-    ),
-  )
+const handlerUrl = dataUrl(
+  compile(
+    source("backend/checkout-prepare/handler.ts")
+      .replace('"../../src/lib/checkout-contract.ts"', JSON.stringify(contractUrl))
+      .replace('"./pricing.ts"', JSON.stringify(pricingUrl)),
+  ),
 );
+const { handleCheckoutPrepare } = await import(handlerUrl);
+const adapterUrl = dataUrl(
+  compile(
+    source("backend/checkout-prepare/adapter.ts")
+      .replace('"../../src/lib/checkout-contract.ts"', JSON.stringify(contractUrl))
+      .replace('"./handler.ts"', JSON.stringify(handlerUrl)),
+  ),
+);
+const { createSupabaseCheckoutBackend } = await import(adapterUrl);
 const guestUrl = dataUrl(
   'export const getGuestCartCredentialsForCheckout=()=>null; export const getGuestCartSnapshot=()=>({status:"idle"});',
 );
@@ -95,7 +102,6 @@ function backendFixture() {
     id: credentials.cart_id,
     currency: "USD",
     status: "active",
-    expiresAt: session.expires_at,
     items: [{ ...item }],
     products: [{ ...product }],
     variants: [],
@@ -167,13 +173,8 @@ test("foreign/nonexistent guest credentials rejected without preparing or reveal
     false,
   );
 });
-test("empty, inactive, expired and unknown-expiry carts never prepare", async () => {
-  for (const overrides of [
-    { items: [] },
-    { status: "converted" },
-    { expiresAt: new Date(0).toISOString() },
-    { expiresAt: "unknown" },
-  ]) {
+test("empty and inactive carts never prepare; no cart expiry is invented", async () => {
+  for (const overrides of [{ items: [] }, { status: "converted" }]) {
     const f = backendFixture();
     Object.assign(f.cart, overrides);
     assert.equal((await handleCheckoutPrepare(req(), f.options)).status, 409);
@@ -228,7 +229,7 @@ test("invalid variant, mismatch, missing selection, inactive/unavailable/unprice
   ]) {
     assert.throws(() => snapshotCart([selected], [product], variants, "USD"));
   }
-  assert.throws(() => snapshotCart([item], [product], [variant], "USD"), /configuration/);
+  assert.equal(snapshotCart([item], [product], [variant], "USD").subtotal, "200.00");
 });
 test("product, variant and cart currencies must all agree", () => {
   const selected = { ...item, variant_id: variant.id };
@@ -512,4 +513,264 @@ test("lower-priced variant and missing variant SKU never fall back to parent sna
   assert.equal(result.items[0].unit_price, "25.50");
   assert.equal(result.items[0].product_sku, null);
   assert.equal(result.items[0].variant_id, variant.id);
+});
+
+function adapterFixture() {
+  const calls = [];
+  const state = {
+    revoked: false,
+    rpcCode: null,
+    session: {
+      ...session,
+      status: "open",
+      subtotal: 200,
+      shipping_amount: 0,
+      tax_amount: 0,
+      discount_amount: 0,
+      total_amount: 200,
+    },
+  };
+  const backend = createSupabaseCheckoutBackend({
+    url: "https://example.test",
+    serviceRoleKey: "isolated-service-key",
+    request: async (endpoint, init) => {
+      const url = new URL(endpoint);
+      calls.push({ url, init });
+      const table = url.pathname.split("/").pop();
+      if (table === "checkout_prepare_bridge") {
+        if (state.rpcCode)
+          return new Response(
+            JSON.stringify({ code: state.rpcCode, message: "private database diagnostic" }),
+            { status: 400 },
+          );
+        return new Response(JSON.stringify(session.id));
+      }
+      if (table === "carts")
+        return new Response(
+          JSON.stringify(
+            !state.revoked &&
+              url.searchParams.get("id") === `eq.${credentials.cart_id}` &&
+              url.searchParams.get("guest_token") === `eq.${credentials.guest_token}`
+              ? [{ id: credentials.cart_id, currency: "USD", status: "active" }]
+              : [],
+          ),
+        );
+      if (table === "cart_items") return new Response(JSON.stringify([item]));
+      if (table === "products") return new Response(JSON.stringify([product]));
+      if (table === "product_variants") return new Response("[]");
+      if (table === "checkout_sessions") return new Response(JSON.stringify([state.session]));
+      throw new Error(`Unapproved request: ${table}`);
+    },
+  });
+  return { backend, calls, state };
+}
+test("service adapter verifies both guest UUIDs, restricts to guest carts and sends server-only credentials", async () => {
+  const f = adapterFixture();
+  const result = await f.backend.authorizeGuestCart(credentials.cart_id, credentials.guest_token);
+  assert.equal(result.id, credentials.cart_id);
+  assert.equal(result.expiresAt, undefined);
+  assert.equal(f.calls[0].url.searchParams.get("user_id"), "is.null");
+  assert.equal(f.calls[0].url.searchParams.get("guest_token"), `eq.${credentials.guest_token}`);
+  assert.equal(f.calls[0].init.headers.Authorization, "Bearer isolated-service-key");
+  assert.equal(await f.backend.authorizeGuestCart(credentials.cart_id, uuid(99)), null);
+  assert.equal(await f.backend.authorizeGuestCart("invalid", credentials.guest_token), null);
+});
+test("adapter invokes the exact migrated bridge arguments and returns DB readback only", async () => {
+  const f = adapterFixture();
+  const result = await f.backend.prepare({
+    ...requestBody,
+    phone: "",
+    shipping_region: "",
+    shipping_postal_code: "",
+  });
+  assert.equal(result.total_amount, "200.00");
+  assert.equal(result.shipping_amount, "0.00");
+  const body = JSON.parse(f.calls[0].init.body);
+  assert.equal(Object.keys(body).length, 13);
+  assert.equal(body.p_guest_token, credentials.guest_token);
+  assert.equal(body.p_cart_id, credentials.cart_id);
+  assert.equal(body.p_idempotency_key, requestBody.idempotency_key);
+  assert.equal(body.p_phone, null);
+  assert.equal(body.p_shipping_region, null);
+  assert.equal(body.p_shipping_postal_code, null);
+  assert.equal(body.p_shipping_country_code, "ZA");
+  assert.equal(body.total_amount, undefined);
+  const readback = f.calls.find((call) => call.url.pathname.endsWith("checkout_sessions"));
+  assert.equal(readback.url.searchParams.get("id"), `eq.${session.id}`);
+  assert.equal(readback.url.searchParams.get("cart_id"), `eq.${credentials.cart_id}`);
+  assert.equal(
+    readback.url.searchParams.get("idempotency_key"),
+    `eq.${requestBody.idempotency_key}`,
+  );
+  assert.equal(result.guest_token, undefined);
+  assert.equal(result.email, undefined);
+});
+test("real handler and adapter contract cooperate without inventing cart expiry", async () => {
+  const f = adapterFixture();
+  const response = await handleCheckoutPrepare(req(), {
+    enabled: true,
+    contractsReviewed: true,
+    allowedOrigins: ["http://localhost:5173"],
+    backend: f.backend,
+  });
+  assert.equal(response.status, 200);
+  const body = await response.json();
+  assert.equal(body.checkout.total_amount, "200.00");
+  assert.equal(body.payment_initiated, false);
+  assert.doesNotMatch(JSON.stringify(body), /isolated-service-key/);
+});
+test("adapter rejects foreign checkout readback and revoked tokens without disclosing session data", async () => {
+  for (const mutation of [
+    (f) => {
+      f.state.session.cart_id = uuid(90);
+    },
+    (f) => {
+      f.state.session.id = uuid(91);
+    },
+    (f) => {
+      f.state.revoked = true;
+    },
+  ]) {
+    const f = adapterFixture();
+    mutation(f);
+    await assert.rejects(f.backend.prepare(requestBody));
+  }
+});
+test("RPC authorization and validation errors are classified without raw diagnostic leakage or retries", async () => {
+  for (const [code, status] of [
+    ["42501", 404],
+    ["22023", 409],
+    ["40P01", 503],
+    ["23505", 503],
+  ]) {
+    const f = adapterFixture();
+    f.state.rpcCode = code;
+    const response = await handleCheckoutPrepare(req(), {
+      enabled: true,
+      contractsReviewed: true,
+      allowedOrigins: ["http://localhost:5173"],
+      backend: f.backend,
+    });
+    assert.equal(response.status, status);
+    assert.doesNotMatch(await response.text(), /private database diagnostic/);
+    assert.equal(
+      f.calls.filter((call) => call.url.pathname.endsWith("checkout_prepare_bridge")).length,
+      1,
+    );
+  }
+});
+test("base product plus distinct selected variants coexist and retain separate prices", () => {
+  const second = {
+    ...variant,
+    id: uuid(77),
+    selling_price: "50.00",
+    variant_name: "Second",
+    sku: "SECOND",
+  };
+  const result = snapshotCart(
+    [
+      item,
+      { ...item, variant_id: variant.id, quantity: 1 },
+      { ...item, variant_id: second.id, quantity: 1 },
+    ],
+    [product],
+    [variant, second],
+    "USD",
+  );
+  assert.equal(result.items.length, 3);
+  assert.equal(result.subtotal, "425.25");
+  assert.deepEqual(
+    result.items.map((item) => item.variant_id),
+    [null, variant.id, second.id],
+  );
+});
+test("nullable contact fields match the supplied DB contract, required fields still reject blanks", async () => {
+  const f = clientFixture();
+  await f.client({
+    ...details,
+    phone: "",
+    shipping_phone: "",
+    shipping_region: "",
+    shipping_postal_code: "",
+  });
+  await assert.rejects(f.client({ ...details, shipping_city: "" }), /Complete/);
+});
+test("migration preserves the guest trust boundary and generated totals without payment execution", () => {
+  const sql = source(
+    "backend/checkout-prepare/migrations/20261021_001_secure_variant_checkout.sql",
+  );
+  assert.match(sql, /p_guest_token IS NULL OR v_cart.guest_token IS DISTINCT FROM p_guest_token/);
+  assert.match(sql, /p_idempotency_key uuid, p_guest_token uuid/);
+  assert.match(sql, /pg_advisory_xact_lock/);
+  assert.match(sql, /FOR SHARE OF v/);
+  assert.match(sql, /checkout_items_unique_base_product/);
+  assert.match(sql, /checkout_items_unique_selected_variant/);
+  assert.doesNotMatch(
+    sql,
+    /ALTER\s+TABLE[^;]+line_total|SELECT\s+private\.(?:create_payment_attempt|finalize_order_from_payment)\s*\(/i,
+  );
+  assert.match(source("backend/checkout-prepare/index.ts"), /DEPLOYMENT_APPROVED = false/);
+  assert.match(source("src/lib/checkout-contract.ts"), /CHECKOUT_CONTRACT_REVIEWED = false/);
+});
+
+test("omitted optional contact/shipping fields normalize safely without invented required fields", async () => {
+  const f = backendFixture();
+  const body = { ...requestBody };
+  for (const key of [
+    "phone",
+    "shipping_phone",
+    "shipping_line2",
+    "shipping_region",
+    "shipping_postal_code",
+  ])
+    delete body[key];
+  const response = await handleCheckoutPrepare(req(body), f.options);
+  assert.equal(response.status, 200);
+  const request = f.calls.find((call) => call[0] === "prepare")[1];
+  assert.equal(request.phone, "");
+  assert.equal(request.shipping_postal_code, "");
+});
+
+test("actual staged Edge entry returns 503 without reading keys or instantiating the adapter", async () => {
+  let handler;
+  const previous = globalThis.Deno;
+  let envReads = 0;
+  globalThis.Deno = {
+    serve: (fn) => {
+      handler = fn;
+    },
+    env: {
+      get: () => {
+        envReads++;
+        throw new Error("Must stay disabled");
+      },
+    },
+  };
+  try {
+    await import(
+      dataUrl(
+        compile(
+          source("backend/checkout-prepare/index.ts")
+            .replace('"./handler.ts"', JSON.stringify(handlerUrl))
+            .replace('"./adapter.ts"', JSON.stringify(adapterUrl)),
+        ),
+      )
+    );
+    const response = await handler(req());
+    assert.equal(response.status, 503);
+    assert.equal(envReads, 0);
+    assert.deepEqual(await response.json(), { error: "Checkout is not available yet" });
+    for (const path of [
+      "src/lib/checkout-contract.ts",
+      "src/lib/checkout-prepare.ts",
+      "src/routes/checkout.tsx",
+    ])
+      assert.doesNotMatch(
+        source(path),
+        /SUPABASE_SERVICE_ROLE_KEY|backend\/checkout-prepare\/adapter/,
+      );
+  } finally {
+    if (previous === undefined) delete globalThis.Deno;
+    else globalThis.Deno = previous;
+  }
 });

@@ -1,6 +1,4 @@
-/** Proposed HTTP boundary, grounded in the saved checkout function arguments.
- * Not a claim that the deployed endpoint implements this contract yet.
- */
+/** HTTP boundary for the reviewed migration. Deployment/browser approval remains closed. */
 export const CHECKOUT_CONTRACT_REVIEWED = false;
 export const checkoutFields = [
   "email",
@@ -14,6 +12,13 @@ export const checkoutFields = [
   "shipping_postal_code",
   "shipping_country_code",
 ] as const;
+export const requiredCheckoutFields = new Set<string>([
+  "email",
+  "shipping_recipient_name",
+  "shipping_line1",
+  "shipping_city",
+  "shipping_country_code",
+]);
 export type CheckoutDetails = Record<(typeof checkoutFields)[number], string>;
 export type CheckoutRequest = CheckoutDetails & {
   cart_id: string;
@@ -38,7 +43,7 @@ export function readCheckoutRequest(input: unknown): CheckoutRequest {
     idempotency_key: body.idempotency_key as string,
   };
   for (const key of checkoutFields) {
-    const value = body[key];
+    const value = body[key] ?? (requiredCheckoutFields.has(key) ? undefined : "");
     if (
       typeof value !== "string" ||
       value.length > 250 ||
@@ -47,8 +52,8 @@ export function readCheckoutRequest(input: unknown): CheckoutRequest {
       throw new Error("Invalid contact or shipping information");
     result[key] = value.trim();
   }
-  // Conservative staged form validation; DB nullability/market requirements still need review.
-  if (checkoutFields.some((key) => key !== "shipping_line2" && !result[key]))
+  // Required fields match the supplied checkout_sessions NOT NULL columns.
+  if (checkoutFields.some((key) => requiredCheckoutFields.has(key) && !result[key]))
     throw new Error("Complete the contact and shipping fields");
   if (
     !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(result.email) ||
