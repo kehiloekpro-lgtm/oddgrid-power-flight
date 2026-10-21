@@ -362,3 +362,16 @@ async function changeItem(
     }
   });
 }
+
+/** Keep checkout credentials out of React state and URLs; reuse the existing tab session. */
+export function getGuestCartCredentialsForCheckout(): GuestCart | null {
+  const credentials = readCart();
+  if (
+    !credentials ||
+    snapshot.status !== "ready" ||
+    snapshot.busy ||
+    snapshot.cart?.id !== credentials.cart_id
+  )
+    return null;
+  return credentials;
+}

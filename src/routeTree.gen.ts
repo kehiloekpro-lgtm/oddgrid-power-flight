@@ -14,6 +14,7 @@ import { Route as AboutRouteImport } from './routes/about'
 import { Route as AdminPreviewRouteImport } from './routes/admin-preview'
 import { Route as BackUpPowerRouteImport } from './routes/back-up-power'
 import { Route as CartRouteImport } from './routes/cart'
+import { Route as CheckoutRouteImport } from './routes/checkout'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as DronesRouteImport } from './routes/drones'
 import { Route as HybridInvertersRouteImport } from './routes/hybrid-inverters'
@@ -50,6 +51,11 @@ const BackUpPowerRoute = BackUpPowerRouteImport.update({
 const CartRoute = CartRouteImport.update({
   id: '/cart',
   path: '/cart',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CheckoutRoute = CheckoutRouteImport.update({
+  id: '/checkout',
+  path: '/checkout',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ContactRoute = ContactRouteImport.update({
@@ -120,6 +126,7 @@ export interface FileRoutesByFullPath {
   '/admin-preview': typeof AdminPreviewRoute
   '/back-up-power': typeof BackUpPowerRoute
   '/cart': typeof CartRoute
+  '/checkout': typeof CheckoutRoute
   '/contact': typeof ContactRoute
   '/drones': typeof DronesRoute
   '/hybrid-inverters': typeof HybridInvertersRoute
@@ -139,6 +146,7 @@ export interface FileRoutesByTo {
   '/admin-preview': typeof AdminPreviewRoute
   '/back-up-power': typeof BackUpPowerRoute
   '/cart': typeof CartRoute
+  '/checkout': typeof CheckoutRoute
   '/contact': typeof ContactRoute
   '/drones': typeof DronesRoute
   '/hybrid-inverters': typeof HybridInvertersRoute
@@ -159,6 +167,7 @@ export interface FileRoutesById {
   '/admin-preview': typeof AdminPreviewRoute
   '/back-up-power': typeof BackUpPowerRoute
   '/cart': typeof CartRoute
+  '/checkout': typeof CheckoutRoute
   '/contact': typeof ContactRoute
   '/drones': typeof DronesRoute
   '/hybrid-inverters': typeof HybridInvertersRoute
@@ -180,6 +189,7 @@ export interface FileRouteTypes {
     | '/admin-preview'
     | '/back-up-power'
     | '/cart'
+    | '/checkout'
     | '/contact'
     | '/drones'
     | '/hybrid-inverters'
@@ -199,6 +209,7 @@ export interface FileRouteTypes {
     | '/admin-preview'
     | '/back-up-power'
     | '/cart'
+    | '/checkout'
     | '/contact'
     | '/drones'
     | '/hybrid-inverters'
@@ -218,6 +229,7 @@ export interface FileRouteTypes {
     | '/admin-preview'
     | '/back-up-power'
     | '/cart'
+    | '/checkout'
     | '/contact'
     | '/drones'
     | '/hybrid-inverters'
@@ -238,6 +250,7 @@ export interface RootRouteChildren {
   AdminPreviewRoute: typeof AdminPreviewRoute
   BackUpPowerRoute: typeof BackUpPowerRoute
   CartRoute: typeof CartRoute
+  CheckoutRoute: typeof CheckoutRoute
   ContactRoute: typeof ContactRoute
   DronesRoute: typeof DronesRoute
   HybridInvertersRoute: typeof HybridInvertersRoute
@@ -287,6 +300,13 @@ declare module '@tanstack/react-router' {
       path: '/cart'
       fullPath: '/cart'
       preLoaderRoute: typeof CartRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/checkout': {
+      id: '/checkout'
+      path: '/checkout'
+      fullPath: '/checkout'
+      preLoaderRoute: typeof CheckoutRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/contact': {
@@ -382,6 +402,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminPreviewRoute: AdminPreviewRoute,
   BackUpPowerRoute: BackUpPowerRoute,
   CartRoute: CartRoute,
+  CheckoutRoute: CheckoutRoute,
   ContactRoute: ContactRoute,
   DronesRoute: DronesRoute,
   HybridInvertersRoute: HybridInvertersRoute,

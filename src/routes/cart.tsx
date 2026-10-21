@@ -161,6 +161,11 @@ function CartPage() {
             <button type="button" disabled className="rounded-xl bg-secondary px-6 py-3 opacity-60">
               Checkout unavailable
             </button>
+            {import.meta.env.DEV && (
+              <Link to="/checkout" className="ml-4 text-sm text-primary underline">
+                Review checkout preparation
+              </Link>
+            )}
             <p className="mt-3 text-sm text-muted-foreground">
               Checkout is not yet available. No orders or payments are being accepted.
             </p>
