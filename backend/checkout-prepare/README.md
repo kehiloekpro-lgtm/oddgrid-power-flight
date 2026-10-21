@@ -194,3 +194,11 @@ Production migration/deployment is a separate explicit authorization and review.
 - Seven multi-session schedules: supplied, not executed (no ordinary local server).
 - Actual Supabase/PostgREST/RLS integration: not executed. OddGrid migration not
   applied; Edge not deployed; browser/Edge gates remain disabled.
+
+## Development database initialization (Phase 3)
+
+The guarded schema-only export, development restore, rollback rehearsal and
+multi-session verification commands are in [development/README.md](development/README.md).
+The authentic baseline and actual development project reference remain operator
+inputs. No hosted database changes or deployments are authorized by that procedure
+without separate approval; both checkout activation gates remain disabled.

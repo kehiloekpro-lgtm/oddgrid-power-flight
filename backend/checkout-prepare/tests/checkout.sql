@@ -113,7 +113,13 @@ SELECT set_config('request.jwt.claim.sub','70000000-0000-4000-8000-000000000001'
 SELECT pg_temp.assert_true(public.checkout_prepare_bridge('30000000-0000-4000-8000-000000000004','fixture@example.test',NULL,'Fixture',NULL,'Fixture address',NULL,'Fixture city',NULL,NULL,'US','50000000-0000-4000-8000-000000000004') IS NOT NULL,'authenticated owner legacy path');
 SELECT set_config('request.jwt.claim.sub','70000000-0000-4000-8000-000000000002',true);
 SELECT set_config('oddgrid.test_staff','yes',true);
-SELECT pg_temp.assert_true(pg_temp.prepare('30000000-0000-4000-8000-000000000004',NULL,'50000000-0000-4000-8000-000000000005') IS NOT NULL,'existing staff exception preserved');
+DO $staff_fixture$ BEGIN
+  IF current_setting('oddgrid.supabase_development_test',true) = 'yes' THEN
+    RAISE NOTICE 'SKIP fixture-only staff stub; real Supabase staff authorization is not replaced';
+  ELSE
+    PERFORM pg_temp.assert_true(pg_temp.prepare('30000000-0000-4000-8000-000000000004',NULL,'50000000-0000-4000-8000-000000000005') IS NOT NULL,'existing staff exception preserved');
+  END IF;
+END; $staff_fixture$;
 SELECT set_config('request.jwt.claim.sub','',true);
 SELECT set_config('oddgrid.test_staff','no',true);
 

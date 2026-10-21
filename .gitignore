@@ -31,3 +31,8 @@ dist-ssr
 *.sln
 *.sw?
 .env
+
+# Local Python verification and private database bundles
+__pycache__/
+.oddgrid-schema/
+.pgpass
