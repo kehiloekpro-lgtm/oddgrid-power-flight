@@ -57,6 +57,14 @@ class RestorePlan(unittest.TestCase):
         self.assertEqual(skipped['public_schema'],3)
         self.assertNotIn('GRANT USAGE ON SCHEMA "public"',sql)
 
+    def test_catalog_comparison_ignores_only_outer_row_order(self):
+        _,m,_,_=self.fixture()
+        sql=d.assert_catalog_sql(m['catalog'])
+        self.assertIn('jsonb_array_elements(actual->\'constraints\')',sql)
+        self.assertIn('jsonb_array_elements(expected->\'constraints\')',sql)
+        self.assertIn('COLLATE "C"',sql)
+        self.assertNotIn('jsonb_array_elements(actual->\'columns\')',sql)
+
     def test_original_and_other_projects_rejected_before_connection(self):
         for ref in [d.SOURCE_REF,'abcdefghijklmnopqrst']:
             with patch.object(d,'psql') as p, self.assertRaises(ValueError):

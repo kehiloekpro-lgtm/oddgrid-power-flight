@@ -394,7 +394,12 @@ def assert_catalog_sql(expected):
     query = query.replace(":'schema_csv'", "'" + ",".join(names) + "'")
     query = query[query.index("WITH selected"):].strip().rstrip(";")
     keys = ["schemas", "functions", "relations", "enums", "sequences", "constraints", "indexes", "triggers", "policies", "default_acls", "managed_custom_triggers", "managed_policies"]
-    checks = " OR ".join(f"actual->'{k}' IS DISTINCT FROM expected->'{k}'" for k in keys)
+    # Catalogue row order is not schema semantics and varies with database locale.
+    # Normalize ONLY the outer object arrays. Keep enum labels, column order,
+    # function text hashes and every nested privilege/constraint value exact.
+    def ordered(side, key):
+        return f"(SELECT jsonb_agg(v ORDER BY v::text COLLATE \"C\") FROM jsonb_array_elements({side}->'{key}') v)"
+    checks = " OR ".join(f"{ordered('actual', k)} IS DISTINCT FROM {ordered('expected', k)}" for k in keys)
     payload = json.dumps(expected).replace("'", "''")
     tag = "$compare$"
     while tag in payload: tag = tag[:-1] + "x$"

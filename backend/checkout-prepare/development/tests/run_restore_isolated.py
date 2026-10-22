@@ -40,8 +40,8 @@ def main():
              '--env','POSTGRES_USER=isolated_admin','--env','POSTGRES_DB=postgres',
              '--env','POSTGRES_HOST_AUTH_METHOD=trust',d.DUMP_IMAGE])
         for _ in range(60):
-            ready=run(['docker','exec',name,'pg_isready','-U','isolated_admin','-d','postgres'],check=False)
-            if ready.returncode==0: break
+            ready=sql("SELECT current_setting('listen_addresses') <> '';",check=False)
+            if ready.returncode==0 and ready.stdout.strip()=='t': break
             time.sleep(0.25)
         else: raise RuntimeError('Isolated PostgreSQL not ready')
         source=manifest['catalog']
@@ -80,7 +80,8 @@ def main():
         sql(plan,user='postgres')
         restored=inventory()
         keys=['schemas','functions','relations','enums','sequences','constraints','indexes','triggers','policies','default_acls','managed_custom_triggers','managed_policies']
-        mismatch=[k for k in keys if restored[k]!=source[k]]
+        canonical=lambda v: sorted(json.dumps(x,sort_keys=True) for x in v)
+        mismatch=[k for k in keys if canonical(restored[k])!=canonical(source[k])]
         if mismatch: raise AssertionError('Catalog mismatch: '+','.join(mismatch))
         print('PASS: actual exported baseline executes as non-superuser postgres; all catalog comparison keys match',flush=True)
         # Repeating the same restore is rejected, leaves verified baseline intact.
