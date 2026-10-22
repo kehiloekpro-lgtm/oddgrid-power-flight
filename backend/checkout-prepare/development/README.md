@@ -1,6 +1,7 @@
 # Phase 3: schema-only development initialization
 
-For the browser-only route verified on 2026-10-22, see
+For the browser-only, integration-branch route prepared on 2026-10-22, see
+[cloud/CODESPACES.md](cloud/CODESPACES.md). The manual Actions alternative is in
 [cloud/README.md](cloud/README.md). Both projects are now accessible through the
 Supabase integration; Development is `ogbnpvroaafgpnlxeftw`. The earlier local
 operator commands below remain available, but Windows installations are not

@@ -248,12 +248,12 @@ def assert_catalog_sql(expected):
     names = [s["name"] for s in expected["schemas"]]
     query = query.replace(":'schema_csv'", "'" + ",".join(names) + "'")
     query = query[query.index("WITH selected"):].strip().rstrip(";")
-    keys = ["schemas", "functions", "relations", "constraints", "indexes", "triggers", "policies", "default_acls"]
+    keys = ["schemas", "functions", "relations", "enums", "sequences", "constraints", "indexes", "triggers", "policies", "default_acls"]
     checks = " OR ".join(f"actual->'{k}' IS DISTINCT FROM expected->'{k}'" for k in keys)
     payload = json.dumps(expected).replace("'", "''")
     tag = "$compare$"
     while tag in payload: tag = tag[:-1] + "x$"
-    return f"SET LOCAL search_path = public, pg_catalog;\nDO {tag} DECLARE actual jsonb; expected jsonb := '{payload}'::jsonb; BEGIN\nSELECT q.* INTO actual FROM ({query}) q;\nIF {checks} THEN RAISE EXCEPTION 'Restored structure/ACLs differ from source; rollback and review compatibility'; END IF; END; $compare$;"
+    return f"SET LOCAL search_path = '';\nDO {tag} DECLARE actual jsonb; expected jsonb := '{payload}'::jsonb; BEGIN\nSELECT q.* INTO actual FROM ({query}) q;\nIF {checks} THEN RAISE EXCEPTION 'Restored structure/ACLs differ from source; rollback and review compatibility'; END IF; END; {tag};"
 
 
 def development_concurrency_spec():
@@ -354,7 +354,7 @@ def main(argv=None):
         prelude = "ALTER DEFAULT PRIVILEGES IN SCHEMA public REVOKE ALL ON TABLES FROM anon, authenticated;\n"
         sql = "BEGIN;\n" + state_guard(require_empty=True, names=names) + prelude + schema_sql(raw) + "\n" + assert_catalog_sql(source) + "\nCOMMIT;"
     elif args.action == "rehearse":
-        if any(target[k] != source[k] for k in ("schemas", "functions", "relations", "constraints", "indexes", "triggers", "policies", "default_acls")):
+        if any(target[k] != source[k] for k in ("schemas", "functions", "relations", "enums", "sequences", "constraints", "indexes", "triggers", "policies", "default_acls")):
             raise ValueError("Development structure differs from the baseline; rehearsal requires the pre-migration schema")
         sql = "BEGIN;\n" + state_guard(require_baseline=True)
         sql += empty_records_guard(names)

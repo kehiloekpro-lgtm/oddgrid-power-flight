@@ -1,0 +1,9 @@
+{
+  "name": "OddGrid schema export (manual, source read only)",
+  "build": { "dockerfile": "Dockerfile" },
+  "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker:4.1.3": {}
+  },
+  "remoteUser": "vscode",
+  "otherPortsAttributes": { "onAutoForward": "ignore" }
+}

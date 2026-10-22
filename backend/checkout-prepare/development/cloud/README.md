@@ -1,7 +1,9 @@
 # Cloud-only export preparation — 2026-10-22
 
-The selected route is a **manual GitHub-hosted export job in a separate private
-utility repository**. Nothing needs to be installed on Windows. The workflow is
+The preferred branch-only route is now [GitHub Codespaces](CODESPACES.md),
+which avoids a separate utility repository and the Actions default-branch
+requirement. The **manual GitHub-hosted Actions export in a separate private
+utility repository**, described below, remains an alternative. Nothing needs to be installed on Windows. The workflow is
 staged here as a template, not registered or executed. Neither hosted database
 has been changed. Source project `izixhjstwfgywbgrnrey` is permanently excluded
 from all write actions; intended Development is `ogbnpvroaafgpnlxeftw`.
@@ -40,7 +42,7 @@ not provide an executable manual route. Moving it to storefront main or changing
 the storefront default branch is outside the assignment. A public repository's
 plain artifacts must not be treated as private secrets storage.
 
-Therefore, after separate approval, use a dedicated **private utility repository**
+When using Actions, after separate approval use a dedicated **private utility repository**
 whose default branch contains only the reviewed export workflow. No Netlify,
 Lovable or Supabase deployment integration should be attached to that repository.
 It checks out the public storefront repository at an exact reviewed commit from

@@ -38,21 +38,50 @@ try {
   await db.exec(`BEGIN;
     CREATE FUNCTION public.phase3_auth_hook() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN RETURN NEW; END $$;
     CREATE TRIGGER phase3_hook AFTER INSERT ON auth.users FOR EACH ROW EXECUTE FUNCTION public.phase3_auth_hook();
-    ALTER TABLE auth.users ENABLE REPLICA TRIGGER phase3_hook;`);
+    ALTER TABLE auth.users ENABLE REPLICA TRIGGER phase3_hook;
+    CREATE SEQUENCE public.phase3_export_seq AS bigint START WITH 19 INCREMENT BY 3 MINVALUE 1 MAXVALUE 1000 CACHE 5 CYCLE;
+    CREATE TYPE public.phase3_export_enum AS ENUM ('one','two');`);
   const hookResults = await db.exec(query.replace("BEGIN READ ONLY;", "").replace("COMMIT;", ""));
   const hooked = hookResults.find((r) => r.rows.length)?.rows[0].jsonb_build_object;
   assert.equal(hooked.managed_custom_triggers[0][4], "R");
+  assert.match(
+    hooked.managed_custom_triggers[0][3],
+    /EXECUTE FUNCTION public\.phase3_auth_hook\(\)/,
+  );
+  assert.deepEqual(hooked.sequences[0], [
+    "public",
+    "phase3_export_seq",
+    "bigint",
+    19,
+    3,
+    1,
+    1000,
+    5,
+    true,
+  ]);
+  assert.deepEqual(hooked.enums.find((e) => e[1] === "phase3_export_enum")[2], ["one", "two"]);
   await db.exec("DROP TRIGGER phase3_hook ON auth.users;" + generated("attachments", hooked));
   assert.equal(
     (await db.query("SELECT tgenabled FROM pg_trigger WHERE tgname='phase3_hook'")).rows[0]
       .tgenabled,
     "R",
   );
-  await db.exec("ROLLBACK;");
+  const wrongSequence = structuredClone(hooked);
+  wrongSequence.sequences[0][4] = 4;
+  await db.exec("SAVEPOINT sequence_fingerprint;");
+  await assert.rejects(db.exec(generated("compare", wrongSequence)), /differ from source/);
+  await db.exec(
+    "ROLLBACK TO SAVEPOINT sequence_fingerprint; RELEASE SAVEPOINT sequence_fingerprint; ROLLBACK;",
+  );
   const results = await db.exec(query);
   const source = results.find((r) => r.rows.length)?.rows[0].jsonb_build_object;
   assert.equal(source.auth_ready, true);
   assert(source.functions.length > 0);
+  assert.match(source.functions[0].body_exact_md5, /^[0-9a-f]{32}$/);
+  assert.match(source.functions[0].definition_md5, /^[0-9a-f]{32}$/);
+  const delimiterName = structuredClone(source);
+  delimiterName.roles.push("$compare$");
+  await db.exec("BEGIN;" + generated("compare", delimiterName) + "ROLLBACK;");
   await db.exec("BEGIN;" + generated("compare", source) + "ROLLBACK;");
   const tampered = structuredClone(source);
   tampered.relations = [];
