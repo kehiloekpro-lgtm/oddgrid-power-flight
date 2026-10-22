@@ -1,9 +1,18 @@
 """Build an atomic restoration from the reviewed private bundle. Never executes SQL."""
 import json
+import hashlib
 import re
 
 DEV_REF = 'ogbnpvroaafgpnlxeftw'
 BASELINE_SHA = '88f212dc644104e7a7b3a7c256badb8a35ecc4baa7a4d27a00d57d5006bb0354'
+MANIFEST_CONTENT_SHA = '92195846e4a2d427253cdf57cfa04481cdacfcbc1b2913a900b9489306416ff9'
+
+def verify_manifest(manifest):
+    actual = hashlib.sha256(json.dumps(manifest, sort_keys=True, separators=(',', ':')).encode()).hexdigest()
+    if actual != MANIFEST_CONTENT_SHA:
+        raise ValueError('Reviewed manifest changed; do not substitute catalogue metadata')
+
+
 HOOK = ['auth', 'users', 'on_auth_user_created',
         'CREATE TRIGGER on_auth_user_created AFTER INSERT ON auth.users FOR EACH ROW EXECUTE FUNCTION public.handle_new_user()', 'O']
 
@@ -43,6 +52,7 @@ END; $acl$;
 
 
 def build(raw, manifest, target, context, setup):
+    verify_manifest(manifest)
     source = manifest['catalog']
     if manifest['schema_sha256'] != BASELINE_SHA or setup.digest(raw) != BASELINE_SHA:
         raise ValueError('Only the exact reviewed schema export may be restored')

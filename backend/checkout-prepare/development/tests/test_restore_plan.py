@@ -1,4 +1,6 @@
 import copy
+import hashlib
+import json
 import sys
 import unittest
 from pathlib import Path
@@ -15,7 +17,7 @@ class RestorePlan(unittest.TestCase):
         return raw, dict(schema_sha256=d.digest(raw),schemas=['private','public'],catalog=src), copy.deepcopy(src), dict(project_ref=r.DEV_REF,current_user='postgres',auth_trigger_privilege=True,auth_reference_privilege=True,hook_exists=False,unsafe_memberships=False,role_elevation=False,transaction_guard='-- before\n',post_guard='-- after\n')
 
     def build(self,raw,m,t,c):
-        with patch.object(r,'BASELINE_SHA',d.digest(raw)): return r.build(raw,m,t,c,d)
+        with patch.object(r,'BASELINE_SHA',d.digest(raw)), patch.object(r,'MANIFEST_CONTENT_SHA',hashlib.sha256(json.dumps(m,sort_keys=True,separators=(',',':')).encode()).hexdigest()): return r.build(raw,m,t,c,d)
 
     def test_order_no_managed_ddl_and_atomic_assertions(self):
         raw,m,t,c=self.fixture(); sql,skipped=self.build(raw,m,t,c)
@@ -56,6 +58,10 @@ class RestorePlan(unittest.TestCase):
         sql,skipped=self.build(raw,m,t,c)
         self.assertEqual(skipped['public_schema'],3)
         self.assertNotIn('GRANT USAGE ON SCHEMA "public"',sql)
+
+    def test_manifest_is_bound_separately_from_schema_sql(self):
+        _,m,_,_=self.fixture()
+        with self.assertRaises(ValueError): r.verify_manifest(m)
 
     def test_catalog_comparison_ignores_only_outer_row_order(self):
         _,m,_,_=self.fixture()

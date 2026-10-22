@@ -1,3 +1,10 @@
+> Current restoration instructions: [RESTORATION_REVIEW.md](RESTORATION_REVIEW.md).
+> The exact private schema export has now passed isolated PostgreSQL restoration
+> tests with the permission corrections and reviewed auth attachment. Hosted
+> restoration is NOT authorized or executed. The earlier preparation notes below
+> describe the prior generic workflow; the pinned Development wrapper and current
+> review supersede its managed-trigger blocker and restore permission handling.
+
 # Phase 3: schema-only development initialization
 
 For the browser-only, integration-branch route prepared on 2026-10-22, see
@@ -104,13 +111,11 @@ Required checks, with no automatic hosted changes:
   setup. Do not copy role passwords or invent role permissions.
 - Review cross-schema references and all non-default managed-schema objects.
   `managed_custom_triggers` contains custom trigger definitions attached to
-  auth/storage/realtime; `managed_policies` flags policies there. If present,
-  the automatic write gate stops: obtain a reviewed metadata-only export of
-  those custom definitions (for policies, inspect `pg_policies` fields
-  `roles,cmd,qual,with_check,permissive`), reconcile with the target's managed
-  defaults, and prepare a scoped compatibility change. Do not recreate or dump
-  platform tables wholesale. This is an explicit compatibility blocker, not a
-  reason to remove authentication helpers or RLS.
+  auth/storage/realtime; `managed_policies` flags policies there. The pinned
+  restore now accepts ONLY the exact reviewed auth-users hook with no managed
+  policies, restores it after application dependencies, and verifies managed
+  objects remain unchanged. Other customizations still fail closed. See the
+  current restoration review; never recreate/dump platform tables wholesale.
 - Check external callbacks, HTTP/database-link functions, event triggers and
   scheduled jobs. Disable or omit source integrations through a reviewed
   development-only compatibility change; never copy secret records. Rehearsal
@@ -120,15 +125,10 @@ Required checks, with no automatic hosted changes:
   embedded credentials. Global/external DDL, top-level non-DDL and arbitrary psql
   commands are rejected. Automatic scanning is not proof of absence of secrets.
 
-The only automatic dump normalization is top-level `CREATE SCHEMA public` to
-`CREATE SCHEMA IF NOT EXISTS public` because Supabase already has that schema.
-Routine bodies and generated columns remain intact. Before restore, Supabase's
-recommended public default-grant revocation prevents target defaults broadening
-new table permissions; the source dump must restore the actual source grants.
-A metadata/ACL comparison **inside the same transaction** aborts and rolls back
-if restored structure or permissions differ. This intentionally fails closed
-on ownership/ACL mismatches rather than silently accepting a weaker baseline.
-Resolve any mismatch in a reviewed compatibility change; do not remove the check.
+The current builder preserves existing matching managed schema/default ACLs,
+replays exact application permissions and attaches the reviewed auth hook inside
+one verified transaction. It never edits the original dump. See the current
+review for the precise adaptations, tests, limits and approved-command template.
 
 ```sh
 # After private review, bind later commands to these exact exported bytes:

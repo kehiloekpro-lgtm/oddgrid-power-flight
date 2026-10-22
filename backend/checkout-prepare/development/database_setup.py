@@ -419,7 +419,7 @@ def development_concurrency_spec():
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("action", choices=["plan", "export", "check-dev", "restore", "rehearse", "apply-migration", "concurrency"])
+    parser.add_argument("action", choices=["plan", "export", "check-dev", "verify-baseline", "restore", "rehearse", "apply-migration", "concurrency"])
     parser.add_argument("--isolationtester", default="isolationtester", help="Local PostgreSQL isolationtester executable for existing multi-session specification")
     parser.add_argument("--dev-ref")
     parser.add_argument("--dev-url", help="Passwordless direct/session-pooler URL, never put a password here")
@@ -442,7 +442,7 @@ def main(argv=None):
     else:
         if not args.dev_ref or not args.dev_url: raise ValueError("Provide the actual Development ref and passwordless endpoint")
         connection = endpoint(args.dev_url, args.dev_ref, development=True)
-    if args.action == "restore" and args.dev_ref != restore_plan.DEV_REF:
+    if args.action in {"restore", "verify-baseline"} and args.dev_ref != restore_plan.DEV_REF:
         raise ValueError("Restore is pinned to OddGrid Development only")
     write = args.action in {"restore", "rehearse", "apply-migration", "concurrency"}
     if write and (not args.execute or args.approval != f"{args.action}:{args.dev_ref}"):
@@ -460,6 +460,7 @@ def main(argv=None):
         return
     raw, manifest = read_bundle(args.bundle)
     if args.reviewed_sha256 != manifest["schema_sha256"]: raise ValueError("Review the actual export and pass its exact --reviewed-sha256")
+    if args.action in {"restore", "verify-baseline"}: restore_plan.verify_manifest(manifest)
     source = manifest["catalog"]
     if names != manifest["schemas"]: raise ValueError("Use the same --schemas as the reviewed bundle")
     target = catalog(connection, password, names)
@@ -469,6 +470,13 @@ def main(argv=None):
     if missing: raise ValueError("Extension/version/schema compatibility must be resolved in development first: " + ",".join(e["name"] for e in missing))
     if args.action != "restore" and (source["managed_custom_triggers"] != [restore_plan.HOOK] or source["managed_policies"]):
         raise ValueError("Source has auth/storage/realtime customizations: review/export them separately before declaring a complete baseline")
+    if args.action == "verify-baseline":
+        if manifest["schema_sha256"] != restore_plan.BASELINE_SHA:
+            raise ValueError("Exact reviewed baseline required")
+        psql(connection, password, "BEGIN READ ONLY;\n" + state_guard(require_baseline=True) +
+             assert_catalog_sql(source) + "\n" + empty_records_guard(names) + "\nROLLBACK;")
+        print("Verified Development baseline structure, ACLs, reviewed auth hook and empty application tables; no write attempted.")
+        return
     if args.action == "restore":
         verify_private_bundle(args.bundle)
         context = json.loads(psql(connection, password, restore_plan.context_sql()))

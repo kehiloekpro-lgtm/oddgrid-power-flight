@@ -14,7 +14,9 @@ import restore_plan
 def main(argv=None):
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--reviewed-commit',required=True)
-    parser.add_argument('--execute',action='store_true')
+    mode=parser.add_mutually_exclusive_group()
+    mode.add_argument('--execute',action='store_true')
+    mode.add_argument('--verify-only',action='store_true')
     parser.add_argument('--approval')
     args=parser.parse_args(argv)
     def git(*parts):
@@ -26,11 +28,16 @@ def main(argv=None):
     folder=Path.home()/'oddgrid-schema-private'
     if setup.verify_private_bundle(folder)!=restore_plan.BASELINE_SHA:
         raise ValueError('Reviewed private baseline required')
+    restore_plan.verify_manifest(setup.read_bundle(folder)[1])
     url=os.environ.get('ODDGRID_DEV_DATABASE_URL','')
     setup.endpoint(url,restore_plan.DEV_REF,development=True)
     if not os.environ.get('ODDGRID_DEV_DB_PASSWORD'):
         raise ValueError('Development Codespaces password secret missing')
     approval='restore:'+restore_plan.DEV_REF
+    if args.verify_only:
+        setup.main(['verify-baseline','--dev-ref',restore_plan.DEV_REF,'--dev-url',url,
+                    '--bundle',str(folder),'--reviewed-sha256',restore_plan.BASELINE_SHA])
+        return
     if not args.execute:
         print('Restore preflight passed; no database connection or write attempted.')
         return
