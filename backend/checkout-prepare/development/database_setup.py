@@ -13,6 +13,8 @@ import re
 import subprocess
 import sys
 import tempfile
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import restore_plan
 from urllib.parse import unquote, urlsplit
 
 SOURCE_REF = "izixhjstwfgywbgrnrey"
@@ -391,7 +393,7 @@ def assert_catalog_sql(expected):
     names = [s["name"] for s in expected["schemas"]]
     query = query.replace(":'schema_csv'", "'" + ",".join(names) + "'")
     query = query[query.index("WITH selected"):].strip().rstrip(";")
-    keys = ["schemas", "functions", "relations", "enums", "sequences", "constraints", "indexes", "triggers", "policies", "default_acls"]
+    keys = ["schemas", "functions", "relations", "enums", "sequences", "constraints", "indexes", "triggers", "policies", "default_acls", "managed_custom_triggers", "managed_policies"]
     checks = " OR ".join(f"actual->'{k}' IS DISTINCT FROM expected->'{k}'" for k in keys)
     payload = json.dumps(expected).replace("'", "''")
     tag = "$compare$"
@@ -435,6 +437,8 @@ def main(argv=None):
     else:
         if not args.dev_ref or not args.dev_url: raise ValueError("Provide the actual Development ref and passwordless endpoint")
         connection = endpoint(args.dev_url, args.dev_ref, development=True)
+    if args.action == "restore" and args.dev_ref != restore_plan.DEV_REF:
+        raise ValueError("Restore is pinned to OddGrid Development only")
     write = args.action in {"restore", "rehearse", "apply-migration", "concurrency"}
     if write and (not args.execute or args.approval != f"{args.action}:{args.dev_ref}"):
         print(f"PLAN ONLY: {args.action} on verified distinct endpoint for {args.dev_ref}. No connection/write attempted.")
@@ -458,12 +462,13 @@ def main(argv=None):
         raise ValueError("Development PostgreSQL major version is older than source")
     missing = [e for e in source["extensions"] if e not in target["extensions"]]
     if missing: raise ValueError("Extension/version/schema compatibility must be resolved in development first: " + ",".join(e["name"] for e in missing))
-    if source["managed_custom_triggers"] or source["managed_policies"]:
+    if args.action != "restore" and (source["managed_custom_triggers"] != [restore_plan.HOOK] or source["managed_policies"]):
         raise ValueError("Source has auth/storage/realtime customizations: review/export them separately before declaring a complete baseline")
     if args.action == "restore":
-        # Official Supabase restore caveat: target defaults must not silently broaden table ACLs.
-        prelude = "ALTER DEFAULT PRIVILEGES IN SCHEMA public REVOKE ALL ON TABLES FROM anon, authenticated;\n"
-        sql = "BEGIN;\n" + state_guard(require_empty=True, names=names) + prelude + schema_sql(raw) + "\n" + assert_catalog_sql(source) + "\nCOMMIT;"
+        verify_private_bundle(args.bundle)
+        context = json.loads(psql(connection, password, restore_plan.context_sql()))
+        context['project_ref'] = args.dev_ref  # Bound to the validated endpoint/user, never a browser field.
+        sql, _ = restore_plan.build(raw, manifest, target, restore_plan.guards(context), sys.modules[__name__])
     elif args.action == "rehearse":
         if any(target[k] != source[k] for k in ("schemas", "functions", "relations", "enums", "sequences", "constraints", "indexes", "triggers", "policies", "default_acls")):
             raise ValueError("Development structure differs from the baseline; rehearsal requires the pre-migration schema")

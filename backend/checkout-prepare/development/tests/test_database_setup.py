@@ -9,7 +9,7 @@ MODULE = Path(__file__).resolve().parents[1] / 'database_setup.py'
 spec = importlib.util.spec_from_file_location('database_setup', MODULE)
 m = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(m)
-DEV = 'abcdefghijklmnopqrst'  # Deliberately synthetic test-only endpoint; never connected.
+DEV = m.restore_plan.DEV_REF  # Deliberately synthetic test-only endpoint; never connected.
 URL = f'postgresql://postgres@db.{DEV}.supabase.co:5432/postgres'
 
 
