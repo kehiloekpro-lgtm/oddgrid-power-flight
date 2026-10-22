@@ -18,6 +18,7 @@ function generated(operation, payload = null) {
       `import importlib.util,json,sys
 spec=importlib.util.spec_from_file_location('setup',sys.argv[1]);m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
 operation=sys.argv[2]
+if operation=='attachments': print(m.managed_attachments(json.load(sys.stdin)))
 if operation=='bridge': print("SELECT to_regprocedure('"+m.CONCURRENCY_BRIDGE+"') IS NOT NULL AS ready;")
 if operation=='compare': print(m.assert_catalog_sql(json.load(sys.stdin)))
 if operation=='rehearse':
@@ -33,6 +34,21 @@ try {
   await db.exec("SET oddgrid.isolated_test='yes';");
   await db.exec(read("../../tests/export-fixture.sql"));
   const query = read("../catalog.sql").replaceAll(":'schema_csv'", "'public,private'");
+  // Test the managed attachment supplement without touching auth records.
+  await db.exec(`BEGIN;
+    CREATE FUNCTION public.phase3_auth_hook() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN RETURN NEW; END $$;
+    CREATE TRIGGER phase3_hook AFTER INSERT ON auth.users FOR EACH ROW EXECUTE FUNCTION public.phase3_auth_hook();
+    ALTER TABLE auth.users ENABLE REPLICA TRIGGER phase3_hook;`);
+  const hookResults = await db.exec(query.replace("BEGIN READ ONLY;", "").replace("COMMIT;", ""));
+  const hooked = hookResults.find((r) => r.rows.length)?.rows[0].jsonb_build_object;
+  assert.equal(hooked.managed_custom_triggers[0][4], "R");
+  await db.exec("DROP TRIGGER phase3_hook ON auth.users;" + generated("attachments", hooked));
+  assert.equal(
+    (await db.query("SELECT tgenabled FROM pg_trigger WHERE tgname='phase3_hook'")).rows[0]
+      .tgenabled,
+    "R",
+  );
+  await db.exec("ROLLBACK;");
   const results = await db.exec(query);
   const source = results.find((r) => r.rows.length)?.rows[0].jsonb_build_object;
   assert.equal(source.auth_ready, true);

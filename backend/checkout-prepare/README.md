@@ -199,6 +199,7 @@ Production migration/deployment is a separate explicit authorization and review.
 
 The guarded schema-only export, development restore, rollback rehearsal and
 multi-session verification commands are in [development/README.md](development/README.md).
-The authentic baseline and actual development project reference remain operator
-inputs. No hosted database changes or deployments are authorized by that procedure
+Development `ogbnpvroaafgpnlxeftw` is verified; the authentic CLI baseline and
+secure runner credentials remain operator inputs. The browser-only export route
+is documented in [development/cloud/README.md](development/cloud/README.md). No hosted database changes or deployments are authorized by that procedure
 without separate approval; both checkout activation gates remain disabled.

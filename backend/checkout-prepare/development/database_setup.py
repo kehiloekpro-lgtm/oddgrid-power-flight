@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Preparation by default. Never write to the source; hosted writes require explicit operation approval.
-Only stdlib + Supabase CLI/Docker/psql on the operator's machine. No stored credentials.
+Only stdlib + Supabase CLI/Docker/psql on an operator machine or isolated cloud runner. No stored credentials.
 """
 import argparse
 import getpass
@@ -151,17 +151,45 @@ def schema_sql(text):
 def digest(data): return hashlib.sha256(data.encode()).hexdigest()
 
 
+def read_sql(path):
+    # Preserve CRLF inside SQL literals/routine bodies; do not normalize source definitions.
+    with path.open(encoding="utf-8", newline="") as file: return file.read()
+
+
 def write_private(path, text):
-    path.write_text(text)
+    with path.open('w', encoding="utf-8", newline="") as file: file.write(text)
     path.chmod(0o600)
 
 
+def managed_attachments(inventory):
+    """Reproduce inspected custom trigger attachments; never dump managed tables/data."""
+    if inventory["managed_policies"]:
+        raise ValueError("Managed-schema policies require a separately reviewed schema-only export")
+    statements = ["-- Source metadata only. REVIEW BEFORE ANY DEVELOPMENT RESTORE; never run on source.",
+                  "-- Apply only after user schemas/functions, with separate authorization."]
+    def ident(value): return '"' + value.replace('"', '""') + '"'
+    modes = {'O': 'ENABLE', 'D': 'DISABLE', 'A': 'ENABLE ALWAYS', 'R': 'ENABLE REPLICA'}
+    for schema, table, trigger, definition, mode in inventory["managed_custom_triggers"]:
+        if schema not in {'auth', 'storage', 'realtime'} or mode not in modes:
+            raise ValueError("Unsupported managed trigger metadata")
+        statements.append(definition.rstrip(';') + ';')
+        statements.append(f"ALTER TABLE {ident(schema)}.{ident(table)} {modes[mode]} TRIGGER {ident(trigger)};")
+    result = "\n".join(statements) + "\n"
+    schema_sql(result)  # Same secret/non-DDL/psql guard as the CLI dump.
+    return result
+
+
 def read_bundle(folder):
-    raw = (folder / "schema.sql").read_text()
+    raw = read_sql(folder / "schema.sql")
     manifest = json.loads((folder / "manifest.json").read_text())
     if manifest.get("source_ref") != SOURCE_REF or manifest.get("schema_sha256") != digest(raw):
         raise ValueError("Bundle provenance/checksum mismatch; do not edit or substitute the baseline")
     schema_sql(raw)
+    if "managed_attachments_sha256" in manifest:
+        attachments = read_sql(folder / "managed-schema-attachments.sql")
+        if digest(attachments) != manifest["managed_attachments_sha256"]:
+            raise ValueError("Managed attachment checksum mismatch")
+        schema_sql(attachments)
     return raw, manifest
 
 
@@ -290,12 +318,14 @@ def main(argv=None):
                 linked = Path(context) / "supabase/.temp/project-ref"
                 if not linked.exists() or linked.read_text().strip() != SOURCE_REF: raise ValueError("CLI source link could not be verified")
                 run(["supabase", "--workdir", context, "db", "dump", "--linked", "--schema", ",".join(names), "--file", str(folder / "schema.sql")], env)
-            raw = (folder / "schema.sql").read_text()
+            raw = read_sql(folder / "schema.sql")
             schema_sql(raw)
             after = catalog(connection, password, names)
             if before != after: raise ValueError("Source metadata changed during export; discard and export again")
-            manifest = {"source_ref": SOURCE_REF, "schemas": names, "schema_sha256": digest(raw), "catalog": after, "supabase_cli_version": cli_version}
+            attachments = managed_attachments(after)
+            manifest = {"managed_attachments_sha256": digest(attachments), "source_ref": SOURCE_REF, "schemas": names, "schema_sha256": digest(raw), "catalog": after, "supabase_cli_version": cli_version}
             write_private(folder / "schema.sql", raw)
+            write_private(folder / "managed-schema-attachments.sql", attachments)
             write_private(folder / "manifest.json", json.dumps(manifest, indent=2) + "\n")
             print("Private schema-only bundle prepared; review before restoration. SHA256: " + digest(raw))
         except Exception:

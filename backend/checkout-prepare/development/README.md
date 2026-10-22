@@ -1,9 +1,16 @@
 # Phase 3: schema-only development initialization
 
+For the browser-only route verified on 2026-10-22, see
+[cloud/README.md](cloud/README.md). Both projects are now accessible through the
+Supabase integration; Development is `ogbnpvroaafgpnlxeftw`. The earlier local
+operator commands below remain available, but Windows installations are not
+required for the cloud export route. No hosted write approval is implied.
+
 Prepared for source `izixhjstwfgywbgrnrey`, branch
 `integration/supabase-demo-product`, starting commit `eafa8a3`.
-**No hosted operation has been executed.** The actual OddGrid Development
-project reference, database credentials and current schema dump are unavailable.
+**No hosted write operation has been executed.** Read-only integration checks
+on 2026-10-22 verified Development `ogbnpvroaafgpnlxeftw`. Database credentials
+and an authentic current CLI schema dump remain unavailable.
 No baseline has been fabricated. The prior SQL metadata fixture is test material,
 **not a development initialization script**.
 
@@ -94,8 +101,11 @@ Required checks, with no automatic hosted changes:
 
 - Match source PostgreSQL major version where possible. Older target major
   versions are rejected. Review any newer-version ACL/syntax differences.
-- Enable matching non-default extensions **in development only after separate
-  approval**, with the same version/schema. The restore gate rejects mismatches.
+- Read-only checks on 2026-10-22 found matching installed extension names,
+  versions and schemas in both projects. Recheck before restoration. Any later
+  extension change needs separate development-only approval; the restore gate
+  rejects mismatches. Current Supabase policy can ignore explicit version
+  clauses; do not force a downgrade or remove the compatibility gate.
 - Supabase supplies `auth`/`storage` and platform roles in the new project; this
   does **not** supply OddGrid tables. Review source role names/owners/grantees;
   any missing custom roles need a separately reviewed, least-privilege role
@@ -242,11 +252,12 @@ rejection, migration+existing-suite rehearsal and complete rollback. Embedded
 single-session PostgreSQL does not establish CLI/Supabase restore compatibility,
 managed-auth behavior or transactional multi-session concurrency.
 
-Outstanding operator inputs: actual development reference and passwordless
-endpoints, database passwords/CLI authentication available only on the operator's
-machine, an authentic current dump, compatibility review, and separate approval
-for each hosted write phase. `psql`, Docker, Supabase CLI and isolationtester are
-not installed in the implementation workspace; none has connected to a project.
+Outstanding operator inputs: passwordless connection endpoints, securely supplied
+database passwords/scoped CLI token, an authentic current dump, compatibility
+review and separate approval for each hosted execution/write phase. The cloud
+route avoids Windows tools entirely. A checksum-pinned CLI was tested with
+version/help commands in ChatGPT Work; no credentialed CLI operation ran. See
+[cloud/README.md](cloud/README.md) for current connection checks and prerequisites.
 
 Keep frontend `CHECKOUT_CONTRACT_REVIEWED=false`, Edge entry point
 `DEPLOYMENT_APPROVED=false`, and the deployed 503 handler unchanged. Do not link
