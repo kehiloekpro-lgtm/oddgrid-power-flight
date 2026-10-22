@@ -78,12 +78,15 @@ class SetupSafety(unittest.TestCase):
 
     def test_schema_only_export_command_contract(self):
         source = MODULE.read_text()
-        self.assertIn('"db", "dump", "--linked", "--schema"', source)
+        self.assertIn("'--schema-only'", source)
+        self.assertIn('schema_dump_command', source)
         self.assertNotIn('"--data-only"', source)
         self.assertNotIn('"--role-only"', source)
         self.assertNotIn('"db", "push"', source)
         self.assertNotIn('"db", "reset"', source)
-        self.assertIn('linked.read_text().strip() != SOURCE_REF', source)
+        self.assertNotIn('["supabase",', source)
+        self.assertNotIn("'--no-owner'", source)
+        self.assertNotIn("'--no-privileges'", source)
 
     def test_reuse_transaction_boundaries_and_no_execution_of_payment(self):
         migration = m.transaction_body(m.MIGRATION.read_text(), 'COMMIT')

@@ -38,7 +38,9 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--reviewed-commit', required=True)
     parser.add_argument('--schemas', default='public,private')
-    parser.add_argument('--execute', action='store_true')
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument('--execute', action='store_true')
+    mode.add_argument('--verify-only', action='store_true')
     parser.add_argument('--approval')
     args = parser.parse_args(argv)
     def git(*options):
@@ -46,18 +48,20 @@ def main(argv=None):
     validate_context(os.environ, args.reviewed_commit, git('rev-parse', 'HEAD'),
                      git('branch', '--show-current'), git('status', '--porcelain', '--untracked-files=no'))
     setup.schemas(args.schemas)
-    for command in ('python3', 'psql', 'docker', 'supabase'):
+    if args.verify_only:
+        sha = setup.verify_private_bundle(Path.home() / 'oddgrid-schema-private')
+        print('Verified private schema.sql, manifest.json and managed-schema-attachments.sql. SHA256: ' + sha)
+        return
+    for command in ('python3', 'psql', 'docker'):
         if not shutil.which(command): raise ValueError('Missing cloud tool: ' + command)
     # Tool discovery and Docker health are local-only; no source connection at preflight.
     env = {k: v for k, v in os.environ.items() if k not in {
         'ODDGRID_SOURCE_DB_PASSWORD', 'SUPABASE_ACCESS_TOKEN', 'GITHUB_TOKEN', 'GH_TOKEN'}}
-    if setup.run(['supabase', '--version'], env) != '2.121.0':
-        raise ValueError('Expected the checksum-pinned Supabase CLI 2.121.0')
     setup.run(['docker', 'info'], env)
     if not args.execute or args.approval != ACK:
         print('Preflight passed; no database connection or export attempted. Supply the reviewed execution acknowledgement to export.')
         return
-    if not os.environ.get('ODDGRID_SOURCE_DB_PASSWORD') or not os.environ.get('SUPABASE_ACCESS_TOKEN'):
+    if not os.environ.get('ODDGRID_SOURCE_DB_PASSWORD'):
         raise ValueError('Configure source-only Codespaces secrets; no password prompts are used')
     # Neither GitHub token nor development credentials are needed by the database exporter.
     os.environ.pop('GITHUB_TOKEN', None)
@@ -68,6 +72,9 @@ def main(argv=None):
 
 if __name__ == '__main__':
     try: main()
+    except setup.ExportFailure as error:
+        print(str(error) + '; sanitized report: ~/oddgrid-export-status.json', file=sys.stderr)
+        sys.exit(1)
     except Exception:
-        print('Codespace export stopped. Check reviewed commit, cloud tools and Codespaces secret configuration; raw diagnostics suppressed.', file=sys.stderr)
+        print('Codespace export stopped: stage=workspace-preflight category=preflight_guard; raw diagnostics suppressed.', file=sys.stderr)
         sys.exit(1)

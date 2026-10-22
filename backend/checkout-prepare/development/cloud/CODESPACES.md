@@ -1,168 +1,126 @@
-# Browser-only source export in GitHub Codespaces
+# Recover the existing Codespaces schema export
 
-Preferred route for the current constraints: create a GitHub-hosted Codespace
-from **`integration/supabase-demo-product`**, select the prepared **OddGrid schema
-export** development container, and run the existing `database_setup.py export`
-through `cloud/codespace_export.py`. All tools run on GitHub's Linux VM. No
-PowerShell, PostgreSQL, Docker, Python or CLI installation on Windows is needed.
-No new utility repository, default-branch change or Actions workflow is required.
-The existing private-utility-repository Actions template remains an alternative.
+Use the **existing**, already working OddGrid export Codespace on
+`integration/supabase-demo-product`. No new Codespace, container rebuild, paid
+service, PowerShell or Windows installation is needed. Do not restore anything.
 
-**Status:** preparation and isolated validation only. No Codespace was created,
-no cloud credentials were retrieved/configured and no hosted export or write ran.
-An actual `schema.sql` is still unavailable; this document is not a schema dump.
+## Verified diagnosis and limits
 
-## Read-only dependency checks completed on 2026-10-22
+- Existing preflight/DB/metadata success is recorded by the operator. Independent
+  read-only source inspection also confirmed that the exact schema-selection
+  query returns only `private` and `public`, so extra schemas are not currently
+  the blocker. The schema guards remain unchanged.
+- CLI 2.121.0 was downloaded, checksum-verified and its `init` command reproduced
+  successfully in a fresh local directory with **no credentials or project link**.
+- The pinned version's actual
+  [link source](https://github.com/supabase/cli/blob/v2.121.0/apps/cli/src/commands/link/link.handler.ts)
+  calls `getProjectApiKeys({ ref, reveal: true })`, extracts `serviceRole` and
+  performs service probes. This is a verified permission-contract defect in the
+  previous export design: a source-only read token must not be broadened to
+  reveal service-role keys merely to dump database definitions.
+- The two original Codespace failures' exact stages are **unconfirmed**. Their
+  generic catch discarded evidence; successful metadata alone cannot prove that
+  linking, Docker dump or SQL validation succeeded. Do not label those attempts
+  definitively as authentication/link failures without stage evidence.
+- Work has no Codespaces terminal/SSH connector. Its browser navigation to
+  GitHub Codespaces reached the GitHub sign-in page, not the owner's workspace.
+  The connected GitHub API does not authenticate that browser or expose the
+  Codespace's secrets/terminal. The operator must run the commands below in the
+  existing browser terminal; do not send credentials into chat or create new
+  infrastructure as a workaround.
 
-The connected Supabase integration returned actual definitions and metadata,
-without executing the auth hook or reading application records:
+## Correction
 
-- `public.handle_new_user()` is owned by `postgres`, `SECURITY DEFINER`, with an
-  empty search path. It inserts the new auth ID and first/last names into
-  `public.profiles`, then returns `NEW`. Its body contains CRLF line endings;
-  the existing export file I/O preserves those bytes. Exact body MD5 at inspection:
-  `a39244234d5c7ebe83006d272e0403cb`. This fingerprint is evidence, not replacement DDL.
-- Source `profiles.id` is UUID, required; first/last names are nullable text.
-  Development's managed `auth.users.id` is UUID and `raw_user_meta_data` is JSONB,
-  satisfying the inspected managed-field dependencies. The real baseline must
-  create `profiles` and its helper before the separate auth-trigger attachment.
-- The actual attachment is `auth.users.on_auth_user_created`, enabled normally,
-  calling `public.handle_new_user()`. The trigger deparser was verified with an
-  empty search path so it emits the **qualified** helper name. No trigger or
-  function was created/changed on either project.
-- Additional source metadata: 14 enum types, 28 RLS-enabled tables, 48 user-schema
-  policies, 102 indexes, 125 constraints and sequences `public.order_number_seq`
-  and `public.rfq_number_seq`, both owned by `postgres`. These are baseline
-  review counts, not reconstructed object definitions.
+The existing Python exporter now invokes **standard PostgreSQL schema-only
+pg_dump directly**, using Docker only as a client-tool runtime:
 
-`catalog.sql` now uses an empty search path for unambiguous deparsing, captures
-exact function body/definition fingerprints, enum label order and sequence
-configuration. Restore comparisons include these fields. Use a **fresh** export;
-older inventories are not silently accepted as equivalent. Sequence definitions
-and configuration are exported; live counter values/records are not copied.
-The checkout migration, live function definitions and all activation gates are
-unchanged. The existing managed-auth-customization restore stop remains intact.
+- Official `docker.io/library/postgres:17.6`, pinned to linux/amd64 manifest
+  `sha256:b86568d3e0fe1dfaeff52714f9da36f206a30e4c49131b82bf96982d78627409`.
+  The manifest was resolved through the official Docker registry. No moving tag
+  determines the executable. Actual pull/run remains a Codespace runtime check.
+- The server entry point is overridden with `pg_dump`; the container never
+  starts or initializes a PostgreSQL server. Root filesystem is read-only,
+  capabilities dropped, no-new-privileges enabled, and output uses the operator's
+  UID/GID in the private mounted output directory.
+- `--schema-only --strict-names --schema private --schema public` captures actual
+  definitions. Ownership, grants and RLS are retained; no `--no-owner`, `--no-acl`,
+  `--data-only`, cleanup, restore, seed or migration command is used. Managed
+  schemas are not dumped. Cross-schema prerequisites are still reviewed separately.
+- Source reference/endpoint checks, before/after metadata equality, approved schema
+  selection, exact function/enum/sequence metadata, SQL safety/secret checks and
+  the auth-trigger supplement remain. Passwords stay in environment only; TLS
+  `require` and read-only PG options are explicitly passed to the dump container.
+- `SUPABASE_ACCESS_TOKEN` is **not used or forwarded**; leave the existing secret
+  alone or manage it separately. No API keys are requested. Existing source URL
+  and source DB password secrets suffice. No expanded permissions are needed.
 
-## Operator actions — GitHub website only
+The existing installed Supabase CLI may remain; it is simply not called. Future
+container builds omit its installation. The manual Actions template uses this
+same exporter and remains dormant, private-utility-repository-only, dispatch-only.
+No storefront main/default-branch change is needed for the Codespaces route.
 
-1. Review the committed code and record the full commit SHA reported with this
-   change. In GitHub **personal Settings → Codespaces → Secrets**, add these
-   **account-specific Codespaces secrets**, granting repository access only to
-   `kehiloekpro-lgtm/oddgrid-power-flight`:
+## Run in the existing browser Linux terminal
 
-   | Name | Value |
-   | --- | --- |
-   | `ODDGRID_SOURCE_DB_PASSWORD` | Existing **original** database password |
-   | `SUPABASE_ACCESS_TOKEN` | Short-lived, **source-project-only read** scoped Supabase PAT required by CLI linking/metadata |
-   | `ODDGRID_SOURCE_DATABASE_URL` | Original dashboard **session-pooler** URL, port 5432, `/postgres`, with the password removed entirely |
+First review the new integration commit reported with this change. Then:
 
-   The URL username must be `postgres.izixhjstwfgywbgrnrey`; use its actual pooler
-   hostname from the original project's **Connect** dialog. Do not guess an AWS
-   pooler identifier. A passwordless direct endpoint is also accepted when IPv6
-   connectivity is available. No development password, API secret/service-role
-   key, customer data or payment credential is needed. Do not reset the original
-   password, create source roles or change source permissions. These are
-   **Codespaces secrets**, distinct from GitHub Actions secrets. Never paste their
-   values into chat, source files, terminal commands or a workflow input.
-2. Open the repository in GitHub, select `integration/supabase-demo-product`, then
-   **Code → Codespaces → … → New with options**. Confirm that branch, and choose
-   **OddGrid schema export (manual, source read only)** as the dev-container
-   configuration. Use the smallest available machine. Check your included quota
-   and spending settings before creation; this assignment did not authorize or
-   start paid compute. No prebuild workflow is needed. If secrets were added to
-   an existing Codespace, stop/restart it to load them.
-3. The Dockerfile installs Python/psql and checksum-pinned Supabase CLI 2.121.0
-   **inside the cloud container**. A version-pinned Docker-in-Docker feature
-   supplies the daemon needed by the CLI's own pg_dump container. It does not
-   install/start a local Postgres server. There are no lifecycle commands to
-   start the frontend, query a project, export, deploy or migrate automatically.
-   The container has no forwarded export server or public artifact endpoint.
-4. In the Codespace's **browser Linux terminal**, set the reviewed SHA (not a
-   password), then run local-only preflight:
+```sh
+git pull --ff-only origin integration/supabase-demo-product
+ODDGRID_REVIEWED_COMMIT='PASTE_NEW_FULL_COMMIT_SHA_FROM_DELIVERY'
+python3 backend/checkout-prepare/development/cloud/codespace_export.py \
+  --reviewed-commit "$ODDGRID_REVIEWED_COMMIT" \
+  --execute --approval export-schema-only:izixhjstwfgywbgrnrey
+```
 
-   ```sh
-   ODDGRID_REVIEWED_COMMIT='PASTE_FULL_COMMIT_SHA_FROM_DELIVERY'
-   python3 backend/checkout-prepare/development/cloud/codespace_export.py \
-     --reviewed-commit "$ODDGRID_REVIEWED_COMMIT"
-   ```
+Do not reuse the old `ef80c9e` reviewed SHA after pulling: the clean-tree/exact-HEAD
+safeguard intentionally requires the new reviewed commit. The wrapper never
+prompts for a password. If git reports local changes, stop and inspect them;
+do not reset/discard operator work or bypass the reviewed-commit guard.
 
-   It requires the exact repository, clean integration branch, reviewed HEAD,
-   original endpoint, pinned CLI and healthy Docker daemon. It makes **no
-   database connection** in this default mode. Wrong/missing setup stops rather
-   than switching projects or requesting an interactive password.
-5. After reviewing the source-only execution step, run the export explicitly in
-   that same browser terminal:
+The first native client run may pull its pinned image once. A failed stage stops
+without retries. No additional Codespace is created and no project is restored.
+Export steps print only allowlisted lines such as:
 
-   ```sh
-   python3 backend/checkout-prepare/development/cloud/codespace_export.py \
-     --reviewed-commit "$ODDGRID_REVIEWED_COMMIT" \
-     --execute --approval export-schema-only:izixhjstwfgywbgrnrey
-   ```
+```text
+EXPORT stage=schema-selection status=passed
+EXPORT stage=schema-dump status=failed category=network_unavailable
+```
 
-   Only the existing `export` action is exposed. It validates the original
-   endpoint and CLI link, uses read-only source sessions, and performs the
-   supported command `supabase db dump --linked --schema private,public` to an
-   output file. There are no data-only, role-only, restore, migration, Edge,
-   payment or source-schema mutation commands. No database password enters argv.
-   A missing read scope, network restriction or cloud tool failure is a blocker;
-   do not grant write scopes, open database networking or weaken guards as a
-   workaround. The database password can have write power; the reviewed export
-   code/transactions restrict its use, not a claim that it is a read-only role.
-6. The private cloud directory `$HOME/oddgrid-schema-private` contains
-   `schema.sql`, `manifest.json` and `managed-schema-attachments.sql` (0700/0600).
-   The supplement contains the inspected auth attachment and enable mode; it
-   does not recreate managed tables/users. The directory is outside the Git
-   checkout, and the exporter refuses writing a dump inside the repository.
-   Do not move it into the checkout or upload it to a public issue/artifact.
-   Use the browser editor's **File → Open Folder** to inspect that private
-   directory after the export; return to the repository folder for code work.
-   You can download ordinary files through the editor without local DB tools.
-   Do not port-forward or serve the export directory. An existing bundle is not
-   overwritten; stop and review it before a repeat export.
-7. Review the real dump for complete definitions, ownership/grants, RLS and
-   dependencies; compare manifest counts/fingerprints with read-only metadata.
-   Preserve enum order, security-definer settings, constraints, indexes,
-   sequences and helper bodies. Never use the incomplete checkout CSV as the
-   baseline or assume CLI output alone certifies fidelity. Keep the reviewed
-   export privately for the later approved development operation. Stop/delete
-   the Codespace when finished to control persistence/usage. Its disk is cloud
-   workspace storage, not an automatically published artifact.
+These lines are examples, **not** results from the owner's Codespace. The private
+`~/oddgrid-export-status.json` records exact stage/status/category and exit code
+when available, surviving removal of incomplete schema output. It contains no
+SQL, function bodies, URLs, passwords, tokens or raw diagnostics. It can be shared
+for diagnosis; **do not share the full dump or manifest in public/chat**.
 
-## Remaining boundaries and blockers
+Success must include `EXPORT stage=complete status=passed` and a real SHA-256.
+The pipeline independently reopens and verifies all three private nonempty files,
+source identity, schema/attachment checksums, SQL safety and 0700/0600 permissions:
 
-The Supabase integration is connected for read-only SQL; it has no supported
-pg_dump tool and does not hand a PostgreSQL login to this export process. Work
-currently lacks psql/Docker and an approved credential-injection channel. Those
-facts prevent an actual supported dump **here**; they are not evidence that the
-schema or backend is missing. Codespaces supplies the cloud tools and a supported
-secret store directly on the integration branch. No Codespace creation/secret
-management tool is exposed to this Work session, so steps 1–2 require the owner.
+- `~/oddgrid-schema-private/schema.sql`
+- `~/oddgrid-schema-private/manifest.json`
+- `~/oddgrid-schema-private/managed-schema-attachments.sql`
 
-The next operator action is to configure the three source-only **Codespaces
-secrets in GitHub Settings**, then create the branch Codespace. Do not send
-passwords through chat. Until then, no real schema export is claimed.
+For an additional local-file verification with **no database connection**:
 
-Restoring Development, applying the auth attachment, checkout migrations,
-credentialed Actions dispatch and any later live checkout/payment/deployment
-operation retain their separate authorization boundaries. This wrapper cannot
-restore Development. It never modifies `main`, creates an automatic workflow,
-starts Netlify builds or runs a payment/order function. The existing Actions
-alternative still requires a private utility repository's default branch; do
-not copy its workflow onto storefront main to bypass that requirement.
+```sh
+python3 backend/checkout-prepare/development/cloud/codespace_export.py \
+  --reviewed-commit "$ODDGRID_REVIEWED_COMMIT" --verify-only
+```
 
-## Validation and official references
+An existing bundle is never overwritten/deleted. A failed new export removes only
+its incomplete bundle and retains the sanitized report. Review a successful
+bundle privately outside Git; no export is committed or published as an artifact.
 
-23 Python safety tests and the extended isolated PostgreSQL runner passed,
-including fully qualified auth attachment under an empty search path, exact
-function fingerprints, enum order, sequence configuration and mismatch rejection.
-Docker configuration/CLI checksum, Python compilation, targeted JavaScript lint
-and whitespace checks were reviewed. The actual Codespaces image build,
-secret injection, hosted CLI export/restore and multi-session concurrency have
-**not** been executed. No frontend code changed.
+## Validation and outstanding work
 
-- [Create a Codespace on a selected branch](https://docs.github.com/en/codespaces/developing-in-a-codespace/creating-a-codespace-for-a-repository)
-- [Codespaces account-specific secrets](https://docs.github.com/en/codespaces/managing-your-codespaces/managing-your-account-specific-secrets-for-github-codespaces)
-- [Codespaces default environment variables](https://docs.github.com/en/codespaces/developing-in-a-codespace/default-environment-variables-for-your-codespace)
-- [Development container configuration](https://docs.github.com/en/codespaces/setting-up-your-project-for-codespaces/adding-a-dev-container-configuration/introduction-to-dev-containers)
-- [Docker-in-Docker feature](https://github.com/devcontainers/features/tree/main/src/docker-in-docker)
-- [Supported Supabase schema dump](https://supabase.com/docs/reference/cli/supabase-db-dump)
+29 isolated Python tests cover complete synthetic export, exact failures at schema
+selection/client/dump/SQL validation, metadata drift, cleanup, preserved existing
+bundles, checksum/private permissions, sanitized subprocess errors and context
+safeguards. Synthetic tests are not a successful hosted export. PostgreSQL
+[documents schema-only extraction and explicit schema selection](https://www.postgresql.org/docs/17/app-pgdump.html).
+A hosted run's checksum is unavailable until the operator completes the command.
+
+Read-only source inspection and isolated tests do not certify a future restore.
+Review raw pg_dump's Supabase role/default-ACL dependencies and the separately
+exported `auth.users` attachment before requesting a development restore. No
+function execution, auth-user fixture insertion, checkout migration, deployment,
+payment or order finalization is authorized/performed by this phase.

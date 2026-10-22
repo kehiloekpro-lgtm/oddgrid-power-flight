@@ -62,26 +62,10 @@ jobs:
           command -v docker
           docker info >/dev/null
           python3 -m unittest discover -s backend/checkout-prepare/development/tests -q
-      - name: Install checksum-pinned CLI on ephemeral runner only
-        shell: bash
-        run: |
-          set -euo pipefail
-          mkdir -p "$RUNNER_TEMP/oddgrid-cli"
-          curl --fail --silent --show-error --location \
-            'https://github.com/supabase/cli/releases/download/v2.121.0/supabase_2.121.0_linux_amd64.tar.gz' \
-            --output "$RUNNER_TEMP/oddgrid-cli/cli.tar.gz"
-          cd "$RUNNER_TEMP/oddgrid-cli"
-          echo '4b481189efbdc57cf2d37bdee5f1a0d29574314398564b32a6dfb76c0fcf275f  cli.tar.gz' | sha256sum --check --status
-          tar -xzf cli.tar.gz supabase
-          [[ "$(./supabase --version)" == '2.121.0' ]]
-          ./supabase db dump --help >/dev/null
-          ./supabase link --help >/dev/null
-          echo "$RUNNER_TEMP/oddgrid-cli" >> "$GITHUB_PATH"
       - name: Read source schema only using existing export procedure
         env:
           EXPORT_RUNNER_REPOSITORY: ${{ vars.EXPORT_RUNNER_REPOSITORY }}
           SOURCE_DATABASE_URL: ${{ vars.ODDGRID_SOURCE_DATABASE_URL }}
-          SUPABASE_ACCESS_TOKEN: ${{ secrets.ODDGRID_SOURCE_READ_TOKEN }}
           ODDGRID_SOURCE_DB_PASSWORD: ${{ secrets.ODDGRID_SOURCE_DB_PASSWORD }}
         shell: bash
         run: python3 backend/checkout-prepare/development/cloud/run_export.py

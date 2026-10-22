@@ -38,7 +38,7 @@ class CodespaceExportSafety(unittest.TestCase):
         with patch.dict(cloud.os.environ,self.environment(),clear=True), \
                 patch.object(cloud.subprocess,'check_output',side_effect=[REVISION,cloud.BRANCH,'']), \
                 patch.object(cloud.shutil,'which',return_value='/cloud/tool'), \
-                patch.object(cloud.setup,'run',side_effect=['2.121.0','Docker healthy']), \
+                patch.object(cloud.setup,'run',return_value='Docker healthy'), \
                 patch.object(cloud.setup,'main') as export:
             cloud.main(['--reviewed-commit',REVISION])
             export.assert_not_called()
@@ -47,7 +47,7 @@ class CodespaceExportSafety(unittest.TestCase):
         with patch.dict(cloud.os.environ,self.environment(),clear=True), \
                 patch.object(cloud.subprocess,'check_output',side_effect=[REVISION,cloud.BRANCH,'']), \
                 patch.object(cloud.shutil,'which',return_value='/cloud/tool'), \
-                patch.object(cloud.setup,'run',side_effect=['2.121.0','Docker healthy']), \
+                patch.object(cloud.setup,'run',return_value='Docker healthy'), \
                 patch.object(cloud.setup,'main') as export:
             with self.assertRaises(ValueError): cloud.main(['--reviewed-commit',REVISION,'--execute','--approval',cloud.ACK])
             export.assert_not_called()

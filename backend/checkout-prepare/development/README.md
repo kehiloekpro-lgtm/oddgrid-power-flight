@@ -11,48 +11,39 @@ Prepared for source `izixhjstwfgywbgrnrey`, branch
 `integration/supabase-demo-product`, starting commit `eafa8a3`.
 **No hosted write operation has been executed.** Read-only integration checks
 on 2026-10-22 verified Development `ogbnpvroaafgpnlxeftw`. Database credentials
-and an authentic current CLI schema dump remain unavailable.
+and an authentic current schema dump remain unavailable.
 No baseline has been fabricated. The prior SQL metadata fixture is test material,
 **not a development initialization script**.
 
 ## Tools and source of truth
 
-Use Python 3, `psql`, Docker and the supported Supabase CLI on a trusted operator
-machine. Authenticate the CLI with `supabase login` there. Record its version;
-the export manifest records `supabase --version`. Obtain both **database**
-passwords from the respective dashboards; API keys are neither needed nor accepted.
-The script prompts without echo and never puts passwords in its command arguments.
-Do not paste passwords into URLs, shell history, source control or test reports.
-Optional `ODDGRID_SOURCE_DB_PASSWORD` / `ODDGRID_DEV_DB_PASSWORD` are supported for
-secure automation; interactive prompting is preferred. Do not enable shell tracing.
+Use Python 3, `psql` and Docker on a trusted Linux cloud/operator machine.
+The current export uses standard PostgreSQL `pg_dump --schema-only` from an
+immutable official PostgreSQL 17.6 client image. It no longer runs `supabase init`,
+`supabase link` or `supabase db dump`. The pinned CLI link requested revealed
+project API keys; that was incompatible with the intended least-privilege PAT.
+Do not broaden that token or retrieve service-role keys to fix export access.
 
-The supported CLI command used by `export` is:
+Only the existing source database password is required, supplied through secure
+Codespaces/Actions secrets (or hidden prompts for a direct local operator).
+No password, URI or access token is placed in Docker argv or diagnostics.
+The validated PG connection environment is forwarded by **variable name**,
+including `PGSSLMODE=require` and read-only `PGOPTIONS`. The image runs only
+`pg_dump`, never its database-server entry point. Explicit `--schema` selections,
+`--schema-only` and `--strict-names` retain user definitions, ownership, ACLs,
+RLS, constraints, indexes and sequences without rows/sequence values or roles.
+The managed-auth attachment remains a separate reviewed export. No Supabase
+Management API or API-key endpoint is called by the current export path.
 
-```sh
-supabase --workdir "$TEMP_CLI_DIRECTORY" db dump --linked \
-  --schema public,private --file "$BUNDLE/schema.sql"
-```
+See [cloud/CODESPACES.md](cloud/CODESPACES.md) for the existing-workspace recovery
+commands and exact pinned image. Each export writes a sanitized stage report to
+`~/oddgrid-export-status.json` (outside the bundle), which survives partial-export
+cleanup. It contains only stage/status/category codes and a successful checksum.
+No raw tool output, credentials, connection string or function body is recorded.
+Actual exports stay private and outside Git. No restore/write phase is authorized.
 
-It runs after `init` and `link --project-ref izixhjstwfgywbgrnrey` in a disposable
-local CLI directory, whose linked reference is checked. The default dump is
-schema-only. **Do not add `--data-only` or `--role-only`.** No customer, supplier,
-auth-user, order, payment, storage-object, migration-history or credential records
-are exported. Application functions can themselves contain hardcoded secrets:
-a limited automatic secret scan is followed by mandatory private human review.
-Do not commit the actual dump or manifest. The script refuses an export inside
-this repository and creates a private bundle directory/files (0700/0600).
-
-Source access is metadata-only: the inventory uses `pg_catalog`; source psql/CLI
-processes receive read-only transaction defaults. No `db pull`, history repair,
-`db push`, `db reset`, migrations or application RPC calls run on the source.
-CLI `link` only establishes a local source context. The export inventories source
-structure before and after dumping and rejects metadata changes during the dump;
-freeze source schema edits during this procedure for a reproducible baseline.
-
-References checked 2026-10-21:
-[CLI dump](https://supabase.com/docs/reference/cli/supabase-db-dump),
-[link](https://supabase.com/docs/reference/cli/supabase-link),
-[Supabase restore guidance](https://supabase.com/docs/guides/platform/migrating-within-supabase/backup-restore).
+References: [PostgreSQL 17 pg_dump](https://www.postgresql.org/docs/17/app-pgdump.html)
+and [Supabase restore guidance](https://supabase.com/docs/guides/platform/migrating-within-supabase/backup-restore).
 
 ## 1. Read-only source export and development check
 
@@ -96,7 +87,7 @@ columns/generated expressions, constraints, indexes, triggers, functions (body
 hashes/security-definer/search paths/ACLs), RLS policies, default privileges,
 schema ownership/ACLs, role names, extensions and managed-schema customizations.
 The raw dump preserves full SQL definitions, types, grants and ownership emitted
-by the CLI. It contains no data or login-role/password export.
+by pg_dump. It contains no data or login-role/password export.
 
 Required checks, with no automatic hosted changes:
 
@@ -136,7 +127,7 @@ recommended public default-grant revocation prevents target defaults broadening
 new table permissions; the source dump must restore the actual source grants.
 A metadata/ACL comparison **inside the same transaction** aborts and rolls back
 if restored structure or permissions differ. This intentionally fails closed
-on CLI ownership/ACL filtering rather than silently accepting a weaker baseline.
+on ownership/ACL mismatches rather than silently accepting a weaker baseline.
 Resolve any mismatch in a reviewed compatibility change; do not remove the check.
 
 ```sh
@@ -250,11 +241,11 @@ npm run build
 
 The new isolated runner checks inventory/comparison SQL, intentional mismatch
 rejection, migration+existing-suite rehearsal and complete rollback. Embedded
-single-session PostgreSQL does not establish CLI/Supabase restore compatibility,
+single-session PostgreSQL does not establish hosted export/restore compatibility,
 managed-auth behavior or transactional multi-session concurrency.
 
 Outstanding operator inputs: passwordless connection endpoints, securely supplied
-database passwords/scoped CLI token, an authentic current dump, compatibility
+securely supplied database password, an authentic current dump, compatibility
 review and separate approval for each hosted execution/write phase. The cloud
 route avoids Windows tools entirely. A checksum-pinned CLI was tested with
 version/help commands in ChatGPT Work; no credentialed CLI operation ran. See

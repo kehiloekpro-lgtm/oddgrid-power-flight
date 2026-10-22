@@ -47,7 +47,7 @@ def main():
     head = subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=setup.ROOT, text=True).strip()
     inputs = validate_context(os.environ, event, head)
     # Do not prompt or accidentally inherit credentials for development.
-    if not os.environ.get('ODDGRID_SOURCE_DB_PASSWORD') or not os.environ.get('SUPABASE_ACCESS_TOKEN'):
+    if not os.environ.get('ODDGRID_SOURCE_DB_PASSWORD'):
         raise ValueError('Missing source-only Actions secrets')
     if os.environ.get('ODDGRID_DEV_DB_PASSWORD'):
         raise ValueError('Development credentials must not be supplied to this export job')
