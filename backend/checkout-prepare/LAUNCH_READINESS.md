@@ -197,6 +197,43 @@ runtime, current-state reconciliation, provider integration and release provenan
 are unresolved. The review SQL files are staged proposals, not automatically
 discovered Supabase migrations or evidence of approval.
 
+## Final observed verification results
+
+- 73 Python safety/audit tests passed; 59 existing/new JavaScript tests passed.
+- Frontend build, TypeScript and targeted ESLint for changed frontend/JS files passed.
+  Full repository lint remains FAILED: 282 formatting errors and seven warnings.
+- Actual checkout migration/historical-preservation suite passed in embedded
+  isolated PostgreSQL. Actual profile correction, nonempty-profile Production
+  proposal (including injected pre-commit failure/rollback), and variant-policy
+  exposure/write-denial regressions passed in isolated PostgreSQL.
+- The actual PRIVATE baseline plus the actual security correction passed the
+  existing functional suite and all 13 separate-session isolationtester schedules
+  in the network-disabled disposable PostgreSQL container. This is NEW ISOLATED
+  evidence, not a rerun of the original hosted test authorization. Cleanup passed
+  in that disposable database; no hosted fixtures were created.
+- Current hosted read-only audit passed exact post-security application catalogue,
+  empty application tables, effective profile column privileges, original Auth
+  count and original sequence state. Strict original managed fingerprint failed.
+  Investigation found additive history metadata: one schema, three relations,
+  eight columns, two constraints and two indexes, with zero removed or changed
+  existing rows in those comparison categories. The additions identify Supabase
+  migration-history objects. No original receipt/managed fingerprint was replaced.
+- Live browser checks: both `/cart` and `/checkout` return the site's Page not found
+  screen. The live homepage still renders the older illustrative catalogue.
+- Original Phase 5 receipt hashes remained the same on reread; no concurrency
+  transcript was recovered. The initial failed run is still FAILED/INCOMPLETE.
+
+Review proposal SHA-256 checksums (not applied):
+
+- `production/profile-permissions-review.sql`:
+  `b6a085abf1d830c07fd718fef4f4d221ae8ba077aa4d1ae12e9b8040c13bff65`
+- `production/variant-read-policy-review.sql`:
+  `0c09b91662f1d5308897a46e12ff71bd8dc1f473b4ba7deb310f6d64b42b408a`
+
+The Supabase CLI copies of the two existing migration SQL files were byte-compared
+with their backend copies and matched. Their presence in Git does not repair
+missing hosted migration-history rows.
+
 ## Prioritized next executable work
 
 1. P0 technical: Production role protection (proposal tested, not deployed).
