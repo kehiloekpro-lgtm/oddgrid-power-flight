@@ -113,6 +113,20 @@ def docker_command():
             ['PGHOST','PGPORT','PGUSER','PGDATABASE','PGPASSWORD','PGSSLMODE','PGCONNECT_TIMEOUT','PGAPPNAME','PGOPTIONS']),[])+['--entrypoint',TESTER,IMAGE,'dbname=postgres']
 
 
+def validate_runtime(value):
+    if value!={'transport_pid_matches_server':True,'statement_timeout':'20s','lock_timeout':'15s','idle_timeout':'30s','read_only':'on'}:
+        raise ValueError('Stock isolationtester route cannot prove backend identity and effective timeouts; no fixtures allowed')
+
+
+def runtime_guard(connection,password):
+    import sys
+    env=d.child_env(connection,password,True)
+    env['PGOPTIONS']='-c default_transaction_read_only=on -c statement_timeout=20000 -c lock_timeout=15000 -c idle_in_transaction_session_timeout=30000'
+    result=subprocess.run([sys.executable,'-c','import json,pooler_probe; print(json.dumps(pooler_probe.probe()))'],cwd=HERE,env=env,capture_output=True,text=True,timeout=45)
+    if result.returncode: raise RuntimeError('Read-only runtime guard failed')
+    validate_runtime(json.loads(result.stdout))
+
+
 def golden(case): return HERE/'tests/phase5_expected'/f'{case}.out'
 
 

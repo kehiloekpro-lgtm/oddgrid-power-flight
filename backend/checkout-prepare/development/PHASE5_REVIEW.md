@@ -1,5 +1,9 @@
 # Phase 5 — Development checkout test approval checkpoint
 
+Historical review for commit 13dcbf6. The hosted run failed; do not reuse its
+authorization. See [current launch handover](../LAUNCH_READINESS.md) for later
+Development security changes, runtime findings and remaining verification gaps.
+
 Target: `ogbnpvroaafgpnlxeftw` only. Original `izixhjstwfgywbgrnrey` is never a write target.
 No hosted test writes have been authorized by this preparation assignment.
 

@@ -76,7 +76,7 @@ class Phase5(unittest.TestCase):
 
 class Phase5Wrapper(unittest.TestCase):
     def run_mode(self,extra,exists=False):
-        with tempfile.TemporaryDirectory() as tmp,patch.object(c.reviewed,'main'),patch.dict(os.environ,{
+        with tempfile.TemporaryDirectory() as tmp,patch.object(c.reviewed,'main'),patch.object(c.p,'runtime_guard'),patch.dict(os.environ,{
           'ODDGRID_DEV_DATABASE_URL':'postgresql://postgres.'+c.reviewed.restore_plan.DEV_REF+'@aws-1-fixture.pooler.supabase.com:5432/postgres',
           'ODDGRID_DEV_DB_PASSWORD':'synthetic'}),patch.object(c.m,'folder',return_value=Path(tmp)),patch.object(c.m,'verify') as verify,patch.object(c.m,'expected',return_value={}),patch.object(c.m,'inspect_state',return_value={}),patch.object(c.reviewed.setup,'read_bundle',return_value=('',{'catalog':{}})),patch.object(c.reviewed.setup,'psql',return_value='t') as sql,patch.object(Path,'is_file',return_value=True):
             if exists: (Path(tmp)/'phase5-execution.json').write_text('{}')

@@ -36,6 +36,7 @@ def main(argv=None):
         raise ValueError('isolationtester wait observation privilege unavailable')
     if d.psql(c,pw,"BEGIN READ ONLY; SELECT pg_has_role(current_user,'authenticated','SET') AND pg_has_role(current_user,'service_role','SET'); ROLLBACK;")!='t':
         raise ValueError('Existing role simulation privileges required; do not grant them')
+    p.runtime_guard(c,pw)  # read-only, before the exclusive intent or ANY fixture write
     # All auth hooks are included in the exact managed snapshot; real helper bodies,
     # RLS and grants are pinned by the migrated catalogue comparison above.
     state=m.inspect_state(d,c,pw,source)

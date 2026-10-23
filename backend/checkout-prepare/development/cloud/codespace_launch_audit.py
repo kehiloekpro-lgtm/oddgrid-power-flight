@@ -19,17 +19,26 @@ def main(argv=None):
     pw=os.environ['ODDGRID_DEV_DB_PASSWORD']
     report=a.evidence(m.folder())
     wanted=a.protected_catalogue(m.expected())
-    d.psql(c,pw,'BEGIN READ ONLY;'+d.state_guard(require_baseline=True)+d.assert_catalog_sql(wanted)+m.effective_acl_sql()+d.empty_records_guard(['public','private'])+'ROLLBACK;')
-    rows=json.loads(d.psql(c,pw,a.profile_privileges_sql()))
-    if not a.valid_profile_privileges(rows): raise ValueError('Unexpected profile column privileges')
+    checks={}
+    def check(name,operation):
+        try: checks[name]=bool(operation())
+        except Exception: checks[name]=False
+    check('post_security_catalogue_and_empty_app',lambda: d.psql(c,pw,'BEGIN READ ONLY;'+d.state_guard(require_baseline=True)+d.assert_catalog_sql(wanted)+m.effective_acl_sql()+d.empty_records_guard(['public','private'])+'ROLLBACK;') is not None)
+    check('effective_profile_column_privileges',lambda:a.valid_profile_privileges(json.loads(d.psql(c,pw,a.profile_privileges_sql()))))
     original=json.loads((m.folder()/'execution.json').read_text())
     if original.get('project_ref')!=r.DEV_REF or original.get('commit')!='0477c1c14e39dbfee8cf6cd05018ca217ce710cf' or original.get('baseline_sha')!=r.BASELINE_SHA or original.get('migration_sha')!=m.MIGRATION_SHA or original.get('expected_sha')!=m.EXPECTED_SHA:
         raise ValueError('Original migration evidence binding mismatch')
     source=d.read_bundle(Path.home()/'oddgrid-schema-private')[1]['catalog']
-    if m.inspect_state(d,c,pw,source)!=original['state']: raise ValueError('Managed/auth/sequence state differs from migration receipt')
-    report['current_development']='VERIFIED: exact checkout catalogue plus reviewed table ACL correction, effective column privileges, empty app tables, managed/auth/sequence state'
+    state=m.inspect_state(d,c,pw,source)
+    checks['auth_count_matches_original']=state['auth_count']==original['state']['auth_count']
+    checks['sequences_match_original']=state['sequences']==original['state']['sequences']
+    checks['managed_fingerprint_matches_original']=state['managed']==original['state']['managed']
+    report['managed_changed_components']=[k for k in state['managed'] if state['managed'][k]!=original['state']['managed'].get(k)]
+    report['checks']=checks
+    report['current_development']='VERIFIED' if all(checks.values()) else 'FAILED: preserve evidence and investigate differences read-only'
     print(json.dumps(report,sort_keys=True,indent=2))
     print('Current integrity verification does NOT certify the failed original Phase5 test run.')
+    if not all(checks.values()): raise SystemExit(1)
 
 
 if __name__=='__main__':

@@ -9,8 +9,14 @@ if (!runtime?.startsWith("/") || !runtime.endsWith("/@electric-sql/pglite/dist/i
   throw new Error("Pass an isolated PGlite runtime path, never a connection URL");
 const { PGlite } = await import(pathToFileURL(runtime).href);
 const db = new PGlite();
+const productionProposal = process.argv[3] === "production-proposal";
 const migration = readFileSync(
-  new URL("../../migrations/20261023_002_protect_profile_role.sql", import.meta.url),
+  new URL(
+    productionProposal
+      ? "../../production/profile-permissions-review.sql"
+      : "../../migrations/20261023_002_protect_profile_role.sql",
+    import.meta.url,
+  ),
   "utf8",
 );
 try {
@@ -36,7 +42,28 @@ try {
   const before = (
     await db.query("SELECT pg_get_functiondef('private.is_staff_or_admin()'::regprocedure) body")
   ).rows[0].body;
-  await db.exec(`BEGIN; ${migration} COMMIT;`);
+  if (productionProposal)
+    await db.exec(
+      "INSERT INTO public.profiles(id,first_name) VALUES ('72000000-0000-4000-8000-000000000001','Preserve existing');",
+    );
+  if (productionProposal) {
+    const injected = migration.replace(
+      "COMMIT;",
+      () => "DO $$BEGIN RAISE EXCEPTION 'Injected verification failure'; END$$; COMMIT;",
+    );
+    await assert.rejects(db.exec(injected), /Injected verification failure/);
+    await db.exec("ROLLBACK;");
+    assert.equal(
+      (
+        await db.query(
+          "SELECT has_table_privilege('authenticated','public.profiles','UPDATE') broad",
+        )
+      ).rows[0].broad,
+      true,
+    );
+    assert.equal((await db.query("SELECT count(*)::int n FROM public.profiles")).rows[0].n, 1);
+  }
+  await db.exec(productionProposal ? migration : `BEGIN; ${migration} COMMIT;`);
   await db.exec(`BEGIN;
     INSERT INTO public.profiles(id) VALUES ('71000000-0000-4000-8000-000000000001'),('71000000-0000-4000-8000-000000000002');
     SET LOCAL request.jwt.claim.sub='71000000-0000-4000-8000-000000000001';
@@ -77,7 +104,19 @@ try {
     before,
   );
   await db.exec("ROLLBACK;");
-  assert.equal((await db.query("SELECT count(*)::int n FROM public.profiles")).rows[0].n, 0);
+  assert.equal(
+    (await db.query("SELECT count(*)::int n FROM public.profiles")).rows[0].n,
+    productionProposal ? 1 : 0,
+  );
+  if (productionProposal)
+    assert.equal(
+      (
+        await db.query(
+          "SELECT first_name FROM public.profiles WHERE id='72000000-0000-4000-8000-000000000001'",
+        )
+      ).rows[0].first_name,
+      "Preserve existing",
+    );
   console.log(
     "PASS: actual profile migration; denied role/id/timestamp edits, allowed own fields, denied foreign edit, trusted provisioning, unchanged helper and fixture rollback.",
   );

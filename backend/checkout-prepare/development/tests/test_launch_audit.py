@@ -9,6 +9,12 @@ import phase5_plan as p
 
 
 class LaunchAudit(unittest.TestCase):
+    def test_pooler_identity_or_ignored_timeouts_cannot_authorize_fixtures(self):
+        good={'transport_pid_matches_server':True,'statement_timeout':'20s','lock_timeout':'15s','idle_timeout':'30s','read_only':'on'}
+        p.validate_runtime(good)
+        for key,value in [('transport_pid_matches_server',False),('statement_timeout','2min'),('lock_timeout','0'),('idle_timeout','0')]:
+            with self.assertRaises(ValueError): p.validate_runtime({**good,key:value})
+
     def test_profile_delta_is_only_two_reviewed_grants_and_not_input_mutation(self):
         old={'relations':[{'name':'public.profiles','acl':[['anon','UPDATE',False],['authenticated','UPDATE',False],['postgres','UPDATE',False]]}]}
         new=a.protected_catalogue(old)
