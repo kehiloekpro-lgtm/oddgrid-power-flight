@@ -71,6 +71,16 @@ def spec(case,guard):
     sessions=sessions.replace('step "retry_commit"',f'step "other_prepare" {{ {other} }}\nstep "wrong_prepare" {{ {wrong} }}\nstep "retry_commit"')
     sessions=sessions.replace('step "price_commit"',f"step \"unavailable\" {{ UPDATE public.product_variants SET availability='out_of_stock' WHERE id='{V}'; }}\nstep \"price_commit\"")
     sessions=sessions.replace('step "edit_commit"',f"step \"insert_item\" {{ INSERT INTO public.cart_items(cart_id,product_id,quantity) VALUES ('{C}','{P}',1); }}\nstep \"delete_item\" {{ DELETE FROM public.cart_items WHERE cart_id='{C}'; }}\nstep \"edit_commit\"")
+    # Each invocation runs exactly one schedule; omit unused steps/sessions rather
+    # than suppressing diagnostics from isolationtester.
+    selected=set(schedule.split())
+    active=[]
+    for block in re.split(r'(?=session ")','session "first"'+sessions):
+        if not block.strip(): continue
+        header=block.split('\n',1)[0]
+        steps=[match.group(0) for match in re.finditer(r'step "([^\"]+)" \{[^}]*\}',block) if match.group(1) in selected]
+        if steps: active.append(header+'\n'+'\n'.join(steps))
+    sessions='\n\n'.join(active)
     invariant=f"""DO $$ BEGIN
  IF (SELECT count(*) FROM public.checkout_sessions) <> {count} OR EXISTS (
  SELECT 1 FROM public.checkout_sessions cs WHERE cs.cart_id <> '{C}' OR cs.subtotal <> {total}
@@ -82,7 +92,7 @@ def spec(case,guard):
  OR EXISTS(SELECT 1 FROM public.checkout_items GROUP BY checkout_session_id,product_id,variant_id HAVING count(*)>1)
  THEN RAISE EXCEPTION 'Phase5 duplicate/partial/incorrect snapshot'; END IF;
  END $$;"""
-    return ('setup\n{\nBEGIN;'+setup+'\nCOMMIT;\n}\nteardown\n{\n'+invariant+'\n}\nsession "first"'+sessions+
+    return ('setup\n{\nBEGIN;'+setup+'\nCOMMIT;\n}\nteardown\n{\n'+invariant+'\n}\n'+sessions+
             '\npermutation '+' '.join('"'+s+'"' for s in schedule.split())+'\n')
 
 
