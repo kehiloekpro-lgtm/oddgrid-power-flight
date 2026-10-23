@@ -20,6 +20,7 @@ import restore_plan as r
 def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--rehearse', action='store_true', help='Also run the existing rollback-only checkout suite in this disposable database')
+    parser.add_argument('--prepare-migration',action='store_true',help='Generate private expected catalogue and test permanent migration only in this disposable database')
     args=parser.parse_args()
     folder = Path.home()/'oddgrid-schema-private'
     d.verify_private_bundle(folder)
@@ -120,6 +121,54 @@ def main():
             if sql('SELECT count(*) FROM auth.users;').stdout.strip() != '0':
                 raise AssertionError('Rehearsal retained auth fixture')
             print('PASS: actual private baseline migration and checkout suite; full rollback, auth/profile cleanup and managed stand-ins unchanged',flush=True)
+        if args.prepare_migration:
+            import migration_plan as mp
+            before_context=json.loads(sql(r.context_sql(),user='postgres').stdout)['managed_snapshot']
+            # Derive the complete expected catalogue by executing the exact bytes
+            # only in this network-disabled disposable database, then roll back.
+            migrated=sql('BEGIN;'+d.transaction_body(d.MIGRATION.read_text(),'COMMIT')+
+                         (d.HERE/'catalog.sql').read_text().replace(":'schema_csv'","'private,public'").replace('BEGIN READ ONLY;','').replace('COMMIT;','')+'ROLLBACK;',user='postgres').stdout
+            wanted=mp.canonical(json.loads(migrated))
+            # Independently constrain the delta; never bless unrelated changes.
+            for key in ['schemas','enums','sequences','triggers','policies','default_acls','managed_custom_triggers','managed_policies']:
+                if mp.canonical(source)[key]!=wanted[key]: raise AssertionError('Unexpected migration delta: '+key)
+            before_functions={f['name']:f for f in source['functions']}
+            after_functions={f['name']:f for f in wanted['functions']}
+            changed=[n for n in before_functions.keys()|after_functions.keys() if before_functions.get(n)!=after_functions.get(n)]
+            if len(after_functions)!=len(before_functions)+2 or any(not n.startswith(('private.create_checkout_from_cart(','public.checkout_prepare_bridge(','private.finalize_order_from_payment(')) for n in changed):
+                raise AssertionError('Unexpected function changes')
+            before_relations={t['name']:t for t in source['relations']}
+            after_relations={t['name']:t for t in wanted['relations']}
+            if before_relations.keys()!=after_relations.keys(): raise AssertionError('Unexpected relation changes')
+            for n,t in before_relations.items():
+                u=after_relations[n]
+                if n in ['public.checkout_items','public.order_items']:
+                    if u['columns'][:-2]!=t['columns'] or [x[0] for x in u['columns'][-2:]]!=['variant_id','variant_name']:
+                        raise AssertionError('Unexpected snapshot columns')
+                    u=dict(u,columns=t['columns'])
+                if u!=t: raise AssertionError('Unexpected relation/ACL/RLS changes')
+            if len(wanted['constraints'])!=len(source['constraints'])-1 or len(wanted['indexes'])!=len(source['indexes'])+1:
+                raise AssertionError('Unexpected uniqueness delta')
+            plan=mp.build(d,source,wanted,before_context)
+            bad=plan.replace(d.assert_catalog_sql(wanted),'ALTER TABLE public.profiles DISABLE ROW LEVEL SECURITY;'+d.assert_catalog_sql(wanted),1)
+            if sql(bad,user='postgres',check=False).returncode==0: raise AssertionError('Bad migration committed')
+            sql('BEGIN READ ONLY;'+d.assert_catalog_sql(source)+d.empty_records_guard(['private','public'])+'ROLLBACK;',user='postgres')
+            print('PASS: injected pre-commit verification failure rolls back complete permanent migration',flush=True)
+            sql(plan,user='postgres')
+            sql(mp.verify_sql(d,wanted),user='postgres')
+            if json.loads(sql(r.context_sql(),user='postgres').stdout)['managed_snapshot']!=before_context:
+                raise AssertionError('Managed state changed')
+            if sql(plan,user='postgres',check=False).returncode==0: raise AssertionError('Already migrated database accepted')
+            # Independent verifier must reject privilege drift, rolled back locally.
+            bad_acl='BEGIN; GRANT EXECUTE ON FUNCTION public.checkout_prepare_bridge(uuid,text,text,text,text,text,text,text,text,text,character,uuid,uuid) TO anon;'+d.assert_catalog_sql(wanted)+'ROLLBACK;'
+            if sql(bad_acl,user='postgres',check=False).returncode==0: raise AssertionError('Verifier accepted ACL drift')
+            sql(mp.verify_sql(d,wanted),user='postgres')
+            mp.folder().mkdir(mode=0o700,exist_ok=True)
+            path=mp.folder()/'expected.json'
+            if path.exists() and mp.digest(json.loads(path.read_text()))!=mp.digest(wanted): raise AssertionError('Private expectation already differs')
+            if not path.exists(): d.write_private(path,json.dumps(wanted,sort_keys=True,separators=(',',':')))
+            print('PASS: isolated permanent commit, independent full-definition/effective-ACL verifier, repeat rejection and managed-state preservation',flush=True)
+            print('EXPECTED_CATALOG_SHA256: '+mp.digest(wanted),flush=True)
         transcript.append('PASS: all isolated restoration checks. Skipped reviewed managed DDL: '+str(skipped))
         print('LIMIT: Auth schema/services and managed extensions are not fully reproduced; no hosted rehearsal executed.',flush=True)
     finally:

@@ -444,6 +444,7 @@ def main(argv=None):
     parser.add_argument("--execute", action="store_true")
     parser.add_argument("--approval", help="Operation-bound approval, e.g. restore:<actual-dev-ref>")
     parser.add_argument("--reviewed-sha256", help="Exact schema digest reviewed for embedded secrets and external hooks")
+    parser.add_argument('--reviewed-commit', help='Required exact clean integration commit for permanent migration')
     args = parser.parse_args(argv)
     names = schemas(args.schemas)
     if args.action == "plan":
@@ -457,7 +458,7 @@ def main(argv=None):
     else:
         if not args.dev_ref or not args.dev_url: raise ValueError("Provide the actual Development ref and passwordless endpoint")
         connection = endpoint(args.dev_url, args.dev_ref, development=True)
-    if args.action in {"restore", "verify-baseline", "rehearse"} and args.dev_ref != restore_plan.DEV_REF:
+    if args.action in {"restore", "verify-baseline", "rehearse", "apply-migration"} and args.dev_ref != restore_plan.DEV_REF:
         raise ValueError("Restore is pinned to OddGrid Development only")
     write = args.action in {"restore", "rehearse", "apply-migration", "concurrency"}
     if write and (not args.execute or args.approval != f"{args.action}:{args.dev_ref}"):
@@ -475,8 +476,16 @@ def main(argv=None):
         return
     raw, manifest = read_bundle(args.bundle)
     if args.reviewed_sha256 != manifest["schema_sha256"]: raise ValueError("Review the actual export and pass its exact --reviewed-sha256")
-    if args.action in {"restore", "verify-baseline", "rehearse"}: restore_plan.verify_manifest(manifest)
+    if args.action in {"restore", "verify-baseline", "rehearse", "apply-migration"}: restore_plan.verify_manifest(manifest)
     source = manifest["catalog"]
+    if args.action=='apply-migration':
+        import migration_plan
+        verify_private_bundle(args.bundle)
+        migration_plan.check_commit(args.reviewed_commit,ROOT)
+        migration_plan.apply(sys.modules[__name__],connection,password,source,
+                             migration_plan.folder()/'execution.json',args.reviewed_commit)
+        print('Permanent Development migration committed and independently verified; no fixtures executed')
+        return
     if names != manifest["schemas"]: raise ValueError("Use the same --schemas as the reviewed bundle")
     target = catalog(connection, password, names)
     if target["server_major"] < source["server_major"]:
