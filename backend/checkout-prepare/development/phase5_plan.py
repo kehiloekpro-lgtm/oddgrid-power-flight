@@ -69,7 +69,7 @@ def spec(case,guard):
     other=template.replace(K,'a5000000-0000-4000-8000-000000000002')
     wrong=template.replace('a4000000-0000-4000-8000-000000000001','a4000000-0000-4000-8000-000000000002')
     sessions=sessions.replace('step "retry_commit"',f'step "other_prepare" {{ {other} }}\nstep "wrong_prepare" {{ {wrong} }}\nstep "retry_commit"')
-    sessions=sessions.replace('step "price_commit"',f"step \"unavailable\" {{ UPDATE public.product_variants SET availability='out_of_stock' WHERE id='{V}'; }}\nstep \"price_commit\"")
+    sessions=sessions.replace('step "price_commit"',f"step \"unavailable\" {{ UPDATE public.product_variants SET availability='available_to_order' WHERE id='{V}'; }}\nstep \"price_commit\"")
     sessions=sessions.replace('step "edit_commit"',f"step \"insert_item\" {{ INSERT INTO public.cart_items(cart_id,product_id,quantity) VALUES ('{C}','{P}',1); }}\nstep \"delete_item\" {{ DELETE FROM public.cart_items WHERE cart_id='{C}'; }}\nstep \"edit_commit\"")
     # Each invocation runs exactly one schedule; omit unused steps/sessions rather
     # than suppressing diagnostics from isolationtester.
