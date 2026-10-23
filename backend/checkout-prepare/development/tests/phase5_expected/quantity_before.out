@@ -9,7 +9,7 @@ step edit_commit: COMMIT;
 step first_prepare: <... completed>
 prepared
 --------
-t       
+t
 (1 row)
 
 step first_commit: COMMIT;

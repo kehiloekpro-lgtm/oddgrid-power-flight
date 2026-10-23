@@ -205,37 +205,17 @@ This executes the unchanged, source-hash-guarded migration on development, using
 its existing transaction. It does not deploy anything or create payment attempts.
 The rehearsal must precede this: it intentionally requires the old baseline.
 
-## 4. Concurrent development verification (separate approval)
+## 4. Post-migration functional and concurrency testing (separate approval)
 
-After the approved development migration, install PostgreSQL's matching
-`isolationtester` executable locally (typically built from PostgreSQL's
-`src/test/isolation`; it is not `pg_isready`). Then, after separate authorization
-for committed synthetic checkout/cart fixtures:
+Use the guarded [Phase 5 procedure](PHASE5_REVIEW.md) and
+`cloud/codespace_test_checkout.py`. The legacy `database_setup.py concurrency`
+execution path is retired: its exit-code-only/manual-output review is insufficient
+for controlled hosted testing. The new wrapper reuses the original specification,
+compares reviewed isolated transcripts and checks exact migrated state and evidence.
 
-```sh
-python3 "$SCRIPT" concurrency --dev-ref "$DEV_REF" --dev-url "$DEV_URL" \
-  --bundle "$BUNDLE" --reviewed-sha256 "$BASELINE_SHA" \
-  --isolationtester /absolute/path/to/isolationtester \
-  --execute --approval "concurrency:$DEV_REF"
-```
-
-This reuses `tests/checkout-concurrency.spec`, replacing only its local database
-name guard with the same checked Supabase environment guard. All original
-schedules, locks, assertions and teardown remain. It refuses populated custom
-tables before running and checks for leftover custom-table records afterward.
-It connects multiple sessions to the verified development endpoint; never point
-that spec directly at a hosted database. Schedules cover same-key retries,
-variant price writes, cart quantity/insertion races and foreign-cart key reuse.
-
-**Concurrency is not rollback-only.** Fixtures commit between sessions and normal
-teardown deletes them. On interruption/failure, stop and inspect synthetic
-`a1...`–`a5...` fixture records and sessions in development; do not blindly retry
-or delete unrelated data. Results are saved privately to
-`$BUNDLE/concurrency-results.txt`. Review every schedule against the expectations
-in the existing spec: intended `22023` rejection/waits are expected; duplicate or
-partial snapshots, unexpected errors, unresolved waits or deadlocks need review.
-`isolationtester` exit zero alone is **not** a concurrency pass. No hosted
-concurrency results are claimed by this commit.
+No hosted synthetic records or concurrency tests are authorized by preparation.
+The review records a real profiles.role authorization concern; it must not be
+misrepresented as a passing security check or silently repaired by test fixtures.
 
 ## 5. Local verification and remaining gates
 

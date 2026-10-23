@@ -50,6 +50,29 @@ class Phase5(unittest.TestCase):
         self.assertIn(p.IMAGE,command)
         self.assertNotIn('--privileged',command)
 
+    def test_exact_transcript_required_before_cleanup(self):
+        with patch.object(p,'CASES',{'same_key':p.CASES['same_key']}),patch.object(p.d,'assert_catalog_sql',return_value='SELECT 1;'):
+            calls=[]
+            output=p.golden('same_key').read_text().replace('t\n','f\n',1)
+            with self.assertRaises(RuntimeError):
+                p.run_schedules(lambda _:subprocess.CompletedProcess([],0,output,''),calls.append,{},'SELECT 1;',lambda *_:None)
+            self.assertEqual(len(calls),1)
+
+    def test_success_cleanup_is_scoped_and_verified_before_commit(self):
+        with patch.object(p.d,'assert_catalog_sql',return_value='SELECT 1;'):
+            sql=p.cleanup_sql({})
+        self.assertTrue(sql.startswith('BEGIN;'))
+        self.assertTrue(sql.endswith('COMMIT;'))
+        self.assertIn("WHERE id='"+p.P+"'",sql)
+        self.assertLess(sql.index('$empty$'),sql.rindex('COMMIT;'))
+        self.assertNotRegex(sql,r'(?i)TRUNCATE|DELETE FROM auth|DELETE FROM public.profiles')
+
+    def test_reviewed_transcripts_have_expected_errors_and_blocking(self):
+        for case in p.CASES:
+            text=p.golden(case).read_text()
+            p.validate_errors(case,text)
+            self.assertEqual(p.normalize_output(text),text)
+
 
 class Phase5Wrapper(unittest.TestCase):
     def run_mode(self,extra,exists=False):

@@ -116,6 +116,12 @@ def docker_command():
 def golden(case): return HERE/'tests/phase5_expected'/f'{case}.out'
 
 
+def normalize_output(output):
+    # psql pads display columns. Ignore trailing display spaces only; preserve
+    # every error, value, wait/completion marker and schedule ordering.
+    return '\n'.join(line.rstrip(' \t\r') for line in output.splitlines())+'\n'
+
+
 def validate_errors(case,output):
     allowed={
       'quantity_after':['Idempotency key reused with a changed cart'],
@@ -138,8 +144,8 @@ def run_schedules(run,sql,source,guard,record,generate=False):
         if generate:
             # This option is used only by the network-disabled isolated driver.
             golden(case).parent.mkdir(exist_ok=True)
-            golden(case).write_text(result.stdout)
-        elif result.stdout!=golden(case).read_text():
+            golden(case).write_text(normalize_output(result.stdout))
+        elif normalize_output(result.stdout)!=golden(case).read_text():
             raise RuntimeError('Concurrency transcript differs; stop without cleanup')
         sql(cleanup_sql(source))
         print('PASS concurrency schedule: '+case,flush=True)
