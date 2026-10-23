@@ -185,6 +185,16 @@ def main():
             print('EXPECTED_CATALOG_SHA256: '+mp.digest(wanted),flush=True)
         if args.phase5:
             import phase5_plan as p5
+            import launch_audit as audit
+            # Development now includes the separately applied security correction.
+            # Reproduce it only in this disposable database; retain the historical
+            # checkout-only private expectation and migration receipt unchanged.
+            security=(d.HERE.parent/'migrations/20261023_002_protect_profile_role.sql').read_text()
+            sql('BEGIN;'+security+'COMMIT;',user='postgres')
+            wanted=audit.protected_catalogue(wanted)
+            sql('BEGIN READ ONLY;'+d.assert_catalog_sql(wanted)+'ROLLBACK;',user='postgres')
+            matrix=json.loads(sql(audit.profile_privileges_sql(),user='postgres').stdout)
+            if not audit.valid_profile_privileges(matrix): raise AssertionError('Profile column privileges differ')
             sql("CREATE OR REPLACE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql STABLE AS $$ SELECT coalesce(nullif(current_setting('request.jwt.claim.sub',true),''),(nullif(current_setting('request.jwt.claims',true),'')::jsonb->>'sub'))::uuid $$; GRANT INSERT ON auth.users TO postgres; GRANT service_role,authenticated TO postgres;")
             sql(p5.functional(wanted),user='postgres')
             sql(mp.verify_sql(d,wanted),user='postgres')
