@@ -44,18 +44,26 @@ export const Route = createFileRoute("/")({
 });
 
 const why = [
-  { icon: Truck, title: "Fast Delivery", copy: "Stocked locally and dispatched within 24 hours." },
+  {
+    icon: Truck,
+    title: "Delivery information",
+    copy: "Availability, shipping costs and lead times must be confirmed before ordering.",
+  },
   {
     icon: Sparkles,
-    title: "Premium Brands",
-    copy: "Only vetted manufacturers with proven field records.",
+    title: "Product information",
+    copy: "Review published specifications and ask us about your requirements.",
   },
   {
     icon: Headphones,
-    title: "Technical Support",
-    copy: "Specialists who size and install what they sell.",
+    title: "Product enquiries",
+    copy: "Contact us to discuss product suitability. Installation is not currently offered.",
   },
-  { icon: ShieldCheck, title: "Warranty", copy: "Full manufacturer warranty with local backing." },
+  {
+    icon: ShieldCheck,
+    title: "Warranty information",
+    copy: "Applicable warranty terms must be confirmed for the selected product and destination.",
+  },
 ];
 
 function Index() {
