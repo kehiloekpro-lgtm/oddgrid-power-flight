@@ -1,4 +1,10 @@
-> Current Phase 4 checkpoint: [REHEARSAL_REVIEW.md](REHEARSAL_REVIEW.md).
+> Current permanent-migration checkpoint: [PERMANENT_MIGRATION_REVIEW.md](PERMANENT_MIGRATION_REVIEW.md).
+> The hosted rollback-only rehearsal has since passed, including independent
+> post-rollback checks. Permanent hosted migration is still unexecuted and needs
+> separate approval. Use the dedicated wrapper; historical generic commands below
+> are superseded by the current review.
+>
+> Prior Phase 4 checkpoint: [REHEARSAL_REVIEW.md](REHEARSAL_REVIEW.md).
 > The baseline has since been restored and independently verified on Development.
 > Historical setup notes below do not authorize another restoration. Hosted
 > rehearsal and permanent migration still require separate approval.
