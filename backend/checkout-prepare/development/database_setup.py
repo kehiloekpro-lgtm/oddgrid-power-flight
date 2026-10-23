@@ -465,6 +465,8 @@ def main(argv=None):
         print(f"PLAN ONLY: {args.action} on verified distinct endpoint for {args.dev_ref}. No connection/write attempted.")
         print("After explicit authorization, add --execute and the operation-bound --approval value.")
         return
+    if args.action == 'concurrency':
+        raise ValueError('Legacy concurrency execution retired; use the reviewed cloud/codespace_test_checkout.py wrapper')
     password = os.environ.get("ODDGRID_SOURCE_DB_PASSWORD" if args.action == "export" else "ODDGRID_DEV_DB_PASSWORD")
     if not password: password = getpass.getpass("Source read-only DB password: " if args.action == "export" else "Development DB password: ")
     if args.action == "export":

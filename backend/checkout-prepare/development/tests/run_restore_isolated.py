@@ -185,7 +185,7 @@ def main():
             print('EXPECTED_CATALOG_SHA256: '+mp.digest(wanted),flush=True)
         if args.phase5:
             import phase5_plan as p5
-            sql("CREATE OR REPLACE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql STABLE AS $$ SELECT coalesce(nullif(current_setting('request.jwt.claim.sub',true),''),(nullif(current_setting('request.jwt.claims',true),'')::jsonb->>'sub'))::uuid $$; GRANT INSERT ON auth.users TO postgres; GRANT service_role TO postgres;")
+            sql("CREATE OR REPLACE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql STABLE AS $$ SELECT coalesce(nullif(current_setting('request.jwt.claim.sub',true),''),(nullif(current_setting('request.jwt.claims',true),'')::jsonb->>'sub'))::uuid $$; GRANT INSERT ON auth.users TO postgres; GRANT service_role,authenticated TO postgres;")
             sql(p5.functional(wanted),user='postgres')
             sql(mp.verify_sql(d,wanted),user='postgres')
             if sql('SELECT count(*) FROM auth.users;').stdout.strip()!='0': raise AssertionError('Auth fixture remains')
