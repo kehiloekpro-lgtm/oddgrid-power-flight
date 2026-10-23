@@ -8,7 +8,7 @@ from pathlib import Path
 import restore_plan as r
 
 MIGRATION_SHA = '87a0aa1b344f6820703af1b3fea6e35b50f8e4dce9339ba7ec0e915cb1dc583d'
-EXPECTED_SHA = 'PENDING_ISOLATED_GENERATION'
+EXPECTED_SHA = 'a3b60b61908845e4183d584d92dbb03139a825f09d8c39cdfe1ffc0011f12f3d'
 KEYS = ('schemas','functions','relations','enums','sequences','constraints','indexes','triggers','policies','default_acls','managed_custom_triggers','managed_policies')
 
 
@@ -30,7 +30,7 @@ def check_commit(commit,root):
 
 
 def check_private(path):
-    if path.is_symlink() or not path.is_file() or path.stat().st_mode & 0o077:
+    if path.parent.is_symlink() or not path.parent.is_dir() or path.parent.stat().st_mode & 0o077 or path.is_symlink() or not path.is_file() or path.stat().st_mode & 0o077:
         raise ValueError('Private migration evidence file required')
 
 
@@ -82,10 +82,10 @@ def build(d,source,wanted,managed):
             d.assert_catalog_sql(wanted)+effective_acl_sql()+d.empty_records_guard(['private','public'])+guard+'COMMIT;')
 
 
-def verify(d,c,pw,source,receipt):
+def verify(d,c,pw,source,receipt,commit):
     check_private(receipt)
     before=json.loads(receipt.read_text())
-    if before['project_ref']!=r.DEV_REF or before['baseline_sha']!=r.BASELINE_SHA or before['migration_sha']!=MIGRATION_SHA or before['expected_sha']!=EXPECTED_SHA:
+    if before['project_ref']!=r.DEV_REF or before['baseline_sha']!=r.BASELINE_SHA or before['migration_sha']!=MIGRATION_SHA or before['expected_sha']!=EXPECTED_SHA or before['commit']!=commit:
         raise ValueError('Migration evidence binding mismatch')
     d.psql(c,pw,verify_sql(d,expected()))
     if inspect_state(d,c,pw,source)!=before['state']:
@@ -106,4 +106,4 @@ def apply(d,c,pw,source,receipt,commit):
     fd=os.open(receipt,os.O_CREAT|os.O_EXCL|os.O_WRONLY,0o600)
     with os.fdopen(fd,'w') as out: json.dump(evidence,out)
     d.psql(c,pw,plan,readonly=False)
-    verify(d,c,pw,source,receipt)  # fresh read-only connections, never replay writes
+    verify(d,c,pw,source,receipt,commit)  # fresh read-only connections, never replay writes

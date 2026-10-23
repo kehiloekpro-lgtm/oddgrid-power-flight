@@ -478,14 +478,6 @@ def main(argv=None):
     if args.reviewed_sha256 != manifest["schema_sha256"]: raise ValueError("Review the actual export and pass its exact --reviewed-sha256")
     if args.action in {"restore", "verify-baseline", "rehearse", "apply-migration"}: restore_plan.verify_manifest(manifest)
     source = manifest["catalog"]
-    if args.action=='apply-migration':
-        import migration_plan
-        verify_private_bundle(args.bundle)
-        migration_plan.check_commit(args.reviewed_commit,ROOT)
-        migration_plan.apply(sys.modules[__name__],connection,password,source,
-                             migration_plan.folder()/'execution.json',args.reviewed_commit)
-        print('Permanent Development migration committed and independently verified; no fixtures executed')
-        return
     if names != manifest["schemas"]: raise ValueError("Use the same --schemas as the reviewed bundle")
     target = catalog(connection, password, names)
     if target["server_major"] < source["server_major"]:
@@ -494,6 +486,14 @@ def main(argv=None):
     if missing: raise ValueError("Extension/version/schema compatibility must be resolved in development first: " + ",".join(e["name"] for e in missing))
     if args.action != "restore" and (source["managed_custom_triggers"] != [restore_plan.HOOK] or source["managed_policies"]):
         raise ValueError("Source has auth/storage/realtime customizations: review/export them separately before declaring a complete baseline")
+    if args.action=='apply-migration':
+        import migration_plan
+        verify_private_bundle(args.bundle)
+        migration_plan.check_commit(args.reviewed_commit,ROOT)
+        migration_plan.apply(sys.modules[__name__],connection,password,source,
+                             migration_plan.folder()/'execution.json',args.reviewed_commit)
+        print('Permanent Development migration committed and independently verified; no fixtures executed')
+        return
     if args.action == "verify-baseline":
         if manifest["schema_sha256"] != restore_plan.BASELINE_SHA:
             raise ValueError("Exact reviewed baseline required")

@@ -154,7 +154,17 @@ def main():
             if sql(bad,user='postgres',check=False).returncode==0: raise AssertionError('Bad migration committed')
             sql('BEGIN READ ONLY;'+d.assert_catalog_sql(source)+d.empty_records_guard(['private','public'])+'ROLLBACK;',user='postgres')
             print('PASS: injected pre-commit verification failure rolls back complete permanent migration',flush=True)
-            sql(plan,user='postgres')
+            import tempfile
+            from unittest.mock import patch
+            with tempfile.TemporaryDirectory(prefix='oddgrid-permanent-isolated-') as tmp:
+                local=Path(tmp)
+                d.write_private(local/'expected.json',json.dumps(wanted,sort_keys=True,separators=(',',':')))
+                def isolated_psql(connection,password,query,readonly=True):
+                    return sql(query,user='postgres').stdout.strip()
+                with patch.object(mp,'folder',return_value=local),patch.object(d,'psql',side_effect=isolated_psql):
+                    mp.apply(d,{},'unused',source,local/'execution.json','a'*40)
+                    mp.verify(d,{},'unused',source,local/'execution.json','a'*40)
+                print('PASS: actual apply implementation and separate read-only verifier use independent connections and bound private evidence',flush=True)
             sql(mp.verify_sql(d,wanted),user='postgres')
             if json.loads(sql(r.context_sql(),user='postgres').stdout)['managed_snapshot']!=before_context:
                 raise AssertionError('Managed state changed')

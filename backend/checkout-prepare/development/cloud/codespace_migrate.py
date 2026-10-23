@@ -28,7 +28,7 @@ def main(argv=None):
     receipt=plan.folder()/'execution.json'
     source=s.read_bundle(Path.home()/'oddgrid-schema-private')[1]['catalog']
     if args.verify_only:
-        plan.verify(s,c,os.environ['ODDGRID_DEV_DB_PASSWORD'],source,receipt)
+        plan.verify(s,c,os.environ['ODDGRID_DEV_DB_PASSWORD'],source,receipt,args.reviewed_commit)
         return
     reviewed.main(['--reviewed-commit',args.reviewed_commit,'--verify-only'])
     if receipt.exists(): raise ValueError('Previous execution evidence exists; investigate read-only, never retry')
