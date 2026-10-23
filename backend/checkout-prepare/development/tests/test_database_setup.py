@@ -98,5 +98,24 @@ class SetupSafety(unittest.TestCase):
         self.assertIn('require_empty', m.state_guard.__code__.co_varnames)
         self.assertIn('RAISE EXCEPTION', m.empty_records_guard(['public', 'private']))
 
+    def test_rehearsal_locks_before_empty_guard_and_has_one_rollback_boundary(self):
+        source={'relations':[{'name':'public.z','kind':'r'},{'name':'private.a','kind':'r'}]}
+        with patch.object(m,'assert_catalog_sql',return_value='SELECT 1;'):
+            sql=m.rehearsal_sql(source)
+        self.assertLess(sql.index('LOCK TABLE private.a'),sql.index('LOCK TABLE public.z'))
+        self.assertLess(sql.index('LOCK TABLE public.z'),sql.index('DO $empty$'))
+        statements=[m.leading_sql(p).strip().upper() for p in m.sql_parts(sql)]
+        self.assertEqual(statements[0],'BEGIN;')
+        self.assertEqual(statements[-1],'ROLLBACK;')
+        self.assertNotIn('COMMIT;',statements)
+        self.assertEqual(statements.count('BEGIN;'),1)
+        self.assertIn("SET LOCAL lock_timeout='5s'",sql)
+
+    def test_rehearsal_refuses_another_development_project_before_connecting(self):
+        other='x'*20
+        with patch.object(m,'psql') as sql, self.assertRaises(ValueError):
+            m.main(['rehearse','--dev-ref',other,'--dev-url',f'postgresql://postgres@db.{other}.supabase.co:5432/postgres','--execute','--approval','rehearse:'+other])
+        sql.assert_not_called()
+
 
 if __name__ == '__main__': unittest.main()

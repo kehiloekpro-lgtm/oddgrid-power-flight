@@ -22,7 +22,7 @@ if operation=='attachments': print(m.managed_attachments(json.load(sys.stdin)))
 if operation=='bridge': print("SELECT to_regprocedure('"+m.CONCURRENCY_BRIDGE+"') IS NOT NULL AS ready;")
 if operation=='compare': print(m.assert_catalog_sql(json.load(sys.stdin)))
 if operation=='rehearse':
- print('BEGIN;'+m.empty_records_guard(['public','private'])+(m.TESTS/'before-migration.sql').read_text()+m.transaction_body(m.MIGRATION.read_text(),'COMMIT')+"SET LOCAL oddgrid.supabase_development_test='yes';"+m.transaction_body((m.TESTS/'checkout.sql').read_text(),'ROLLBACK')+'ROLLBACK;')
+ print(m.rehearsal_sql(json.load(sys.stdin)))
 `,
       modulePath,
       operation,
@@ -90,7 +90,7 @@ try {
     /differ from source/,
   );
   await db.exec("ROLLBACK;");
-  await db.exec(generated("rehearse"));
+  await db.exec(generated("rehearse", source));
   // Full rehearsal rolls back both migration and fixtures, including historical preservation seed.
   await db.exec("BEGIN;" + generated("compare", source) + "ROLLBACK;");
   assert.equal((await db.query("SELECT count(*)::int AS n FROM public.products")).rows[0].n, 0);

@@ -130,6 +130,15 @@ UPDATE public.cart_items SET quantity=2 WHERE cart_id='30000000-0000-4000-8000-0
 UPDATE public.products SET selling_price=101 WHERE id='10000000-0000-4000-8000-000000000001';
 SELECT pg_temp.assert_true(pg_temp.prepare('30000000-0000-4000-8000-000000000001','40000000-0000-4000-8000-000000000001','50000000-0000-4000-8000-000000000001')=(SELECT id FROM result),'replay keeps frozen price');
 SELECT pg_temp.assert_true((SELECT total_amount=1150 FROM public.checkout_sessions WHERE id=(SELECT id FROM result)), 'original price is frozen');
+-- A new request must use the current authoritative price, including a variant change.
+UPDATE public.product_variants SET selling_price=310 WHERE id='20000000-0000-4000-8000-000000000001';
+CREATE TEMP TABLE fresh_result AS SELECT pg_temp.prepare('30000000-0000-4000-8000-000000000001','40000000-0000-4000-8000-000000000001','50000000-0000-4000-8000-000000000009') AS id;
+SELECT pg_temp.assert_true((SELECT subtotal=1172 AND total_amount=1172 FROM public.checkout_sessions WHERE id=(SELECT id FROM fresh_result)), 'new request uses changed base and variant prices');
+SELECT pg_temp.assert_true((SELECT unit_price=300 FROM public.checkout_items WHERE checkout_session_id=(SELECT id FROM result) AND variant_id='20000000-0000-4000-8000-000000000001'), 'old variant price remains frozen');
+SELECT pg_temp.assert_true((SELECT unit_price=310 FROM public.checkout_items WHERE checkout_session_id=(SELECT id FROM fresh_result) AND variant_id='20000000-0000-4000-8000-000000000001'), 'new variant price is authoritative');
+SELECT pg_temp.reject($q$UPDATE public.cart_items SET quantity=0 WHERE cart_id='30000000-0000-4000-8000-000000000002'$q$,'23514');
+SELECT pg_temp.reject($q$SELECT pg_temp.prepare('30000000-0000-4000-8000-000000000099','40000000-0000-4000-8000-000000000002','50000000-0000-4000-8000-000000000009')$q$,'42501');
+SELECT pg_temp.reject($q$SELECT pg_temp.prepare(NULL,'40000000-0000-4000-8000-000000000002','50000000-0000-4000-8000-000000000009')$q$,'22023');
 
 -- An old USD session cannot be replayed after a cart/catalogue currency switch.
 SAVEPOINT currency_replay_fixture;
@@ -155,5 +164,14 @@ SELECT pg_temp.reject($q$SELECT pg_temp.prepare('30000000-0000-4000-8000-0000000
 UPDATE public.carts SET status='converted' WHERE id='30000000-0000-4000-8000-000000000002';
 SELECT pg_temp.reject($q$SELECT pg_temp.prepare('30000000-0000-4000-8000-000000000002','40000000-0000-4000-8000-000000000002','50000000-0000-4000-8000-000000000002')$q$,'22023');
 SELECT pg_temp.assert_true(NOT has_function_privilege('anon','public.checkout_prepare_bridge(uuid,text,text,text,text,text,text,text,text,text,character,uuid,uuid)','EXECUTE') AND NOT has_function_privilege('authenticated','private.create_checkout_from_cart(uuid,text,text,text,text,text,text,text,text,text,character,uuid,uuid)','EXECUTE'), 'RPC grants remain privileged');
+DO $all_rpc_grants$ DECLARE f record; role_name text; BEGIN
+ FOR f IN SELECT p.oid,p.proacl,p.proowner FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace
+ WHERE (n.nspname='private' AND p.proname='create_checkout_from_cart') OR (n.nspname='public' AND p.proname='checkout_prepare_bridge') LOOP
+  FOREACH role_name IN ARRAY ARRAY['anon','authenticated'] LOOP
+   PERFORM pg_temp.assert_true(NOT has_function_privilege(role_name,f.oid,'EXECUTE'),'all legacy/new RPC roles restricted');
+  END LOOP;
+  PERFORM pg_temp.assert_true(NOT EXISTS(SELECT 1 FROM aclexplode(coalesce(f.proacl,acldefault('f',f.proowner))) WHERE grantee=0),'no PUBLIC RPC execute');
+ END LOOP;
+END; $all_rpc_grants$;
 SELECT pg_temp.assert_true((SELECT count(*)=0 FROM public.payments) AND (SELECT count(*)=0 FROM public.orders),'no payments or orders created');
 ROLLBACK;

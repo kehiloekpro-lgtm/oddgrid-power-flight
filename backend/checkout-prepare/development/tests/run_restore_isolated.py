@@ -4,6 +4,7 @@ Run in existing export Codespace. Full output stays private, only PASS labels es
 No checkout migration, payment function or order-finalization invocation.
 """
 import json
+import argparse
 import os
 from pathlib import Path
 import subprocess
@@ -16,6 +17,9 @@ import restore_plan as r
 
 
 def main():
+    parser=argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--rehearse', action='store_true', help='Also run the existing rollback-only checkout suite in this disposable database')
+    args=parser.parse_args()
     folder = Path.home()/'oddgrid-schema-private'
     d.verify_private_bundle(folder)
     raw, manifest = d.read_bundle(folder)
@@ -103,6 +107,18 @@ def main():
         print('PASS: real auth hook creates profile in rolled-back synthetic transaction; unrelated managed hook preserved',flush=True)
         sql(d.empty_records_guard(['public','private']),user='postgres')
         print('PASS: no customer/payment/order records retained; no payment or checkout functions invoked',flush=True)
+        if args.rehearse:
+            # Hosted auth.uid definition inspected read-only, reproduced here solely
+            # for synthetic JWT claims. No real Auth service or credentials exist.
+            sql("CREATE OR REPLACE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql STABLE AS $$ SELECT coalesce(nullif(current_setting('request.jwt.claim.sub',true),''),(nullif(current_setting('request.jwt.claims',true),'')::jsonb->>'sub'))::uuid $$; GRANT INSERT ON auth.users TO postgres;")
+            managed_before=json.loads(sql(r.context_sql(),user='postgres').stdout)['managed_snapshot']
+            sql(d.rehearsal_sql(source),user='postgres')
+            sql('BEGIN READ ONLY;'+d.assert_catalog_sql(source)+d.empty_records_guard(['private','public'])+'ROLLBACK;',user='postgres')
+            if json.loads(sql(r.context_sql(),user='postgres').stdout)['managed_snapshot'] != managed_before:
+                raise AssertionError('Rehearsal changed managed stand-ins')
+            if sql('SELECT count(*) FROM auth.users;').stdout.strip() != '0':
+                raise AssertionError('Rehearsal retained auth fixture')
+            print('PASS: actual private baseline migration and checkout suite; full rollback, auth/profile cleanup and managed stand-ins unchanged',flush=True)
         transcript.append('PASS: all isolated restoration checks. Skipped reviewed managed DDL: '+str(skipped))
         print('LIMIT: auth.uid and managed auth schema are isolated stand-ins; hosted restore remains unexecuted.',flush=True)
     finally:

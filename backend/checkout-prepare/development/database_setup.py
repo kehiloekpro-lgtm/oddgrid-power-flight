@@ -387,6 +387,21 @@ def transaction_body(text, end):
     return "\n".join(parts[1:-1])
 
 
+def rehearsal_sql(source):
+    # Lock every existing application table before checking emptiness. An external
+    # writer either finishes first (and is rejected) or waits until rollback.
+    # Names are already identifier-quoted by catalog.sql; source is the pinned manifest.
+    locks = "\n".join('LOCK TABLE ' + t['name'] + ' IN ACCESS EXCLUSIVE MODE;'
+                       for t in sorted(source['relations'], key=lambda t: t['name']) if t['kind'] in ('r', 'p'))
+    return ("BEGIN;\nSET LOCAL lock_timeout='5s';\nSET LOCAL statement_timeout='60s';\n" +
+            state_guard(require_baseline=True) + locks + '\n' + assert_catalog_sql(source) +
+            empty_records_guard(['private', 'public']) +
+            (TESTS / 'before-migration.sql').read_text() +
+            transaction_body(MIGRATION.read_text(), 'COMMIT') +
+            "\nSET LOCAL oddgrid.supabase_development_test = 'yes';\n" +
+            transaction_body((TESTS / 'checkout.sql').read_text(), 'ROLLBACK') + '\nROLLBACK;')
+
+
 def assert_catalog_sql(expected):
     # Compare in the SAME restore transaction; failure rolls back schema/default privilege changes.
     query = (HERE / "catalog.sql").read_text().replace("BEGIN READ ONLY;", "").replace("COMMIT;", "")
@@ -442,7 +457,7 @@ def main(argv=None):
     else:
         if not args.dev_ref or not args.dev_url: raise ValueError("Provide the actual Development ref and passwordless endpoint")
         connection = endpoint(args.dev_url, args.dev_ref, development=True)
-    if args.action in {"restore", "verify-baseline"} and args.dev_ref != restore_plan.DEV_REF:
+    if args.action in {"restore", "verify-baseline", "rehearse"} and args.dev_ref != restore_plan.DEV_REF:
         raise ValueError("Restore is pinned to OddGrid Development only")
     write = args.action in {"restore", "rehearse", "apply-migration", "concurrency"}
     if write and (not args.execute or args.approval != f"{args.action}:{args.dev_ref}"):
@@ -460,7 +475,7 @@ def main(argv=None):
         return
     raw, manifest = read_bundle(args.bundle)
     if args.reviewed_sha256 != manifest["schema_sha256"]: raise ValueError("Review the actual export and pass its exact --reviewed-sha256")
-    if args.action in {"restore", "verify-baseline"}: restore_plan.verify_manifest(manifest)
+    if args.action in {"restore", "verify-baseline", "rehearse"}: restore_plan.verify_manifest(manifest)
     source = manifest["catalog"]
     if names != manifest["schemas"]: raise ValueError("Use the same --schemas as the reviewed bundle")
     target = catalog(connection, password, names)
@@ -483,15 +498,12 @@ def main(argv=None):
         context['project_ref'] = args.dev_ref  # Bound to the validated endpoint/user, never a browser field.
         sql, _ = restore_plan.build(raw, manifest, target, restore_plan.guards(context), sys.modules[__name__])
     elif args.action == "rehearse":
-        if any(target[k] != source[k] for k in ("schemas", "functions", "relations", "enums", "sequences", "constraints", "indexes", "triggers", "policies", "default_acls")):
-            raise ValueError("Development structure differs from the baseline; rehearsal requires the pre-migration schema")
-        sql = "BEGIN;\n" + state_guard(require_baseline=True)
-        sql += empty_records_guard(names)
-        sql += (TESTS / "before-migration.sql").read_text()
-        sql += transaction_body(MIGRATION.read_text(), "COMMIT")
-        sql += "\nSET LOCAL oddgrid.supabase_development_test = 'yes';\n"
-        sql += transaction_body((TESTS / "checkout.sql").read_text(), "ROLLBACK")
-        sql += "\nROLLBACK;"
+        verify_private_bundle(args.bundle)
+        # Read-only drift check before acquiring locks or creating fixtures.
+        psql(connection, password, 'BEGIN READ ONLY;' + assert_catalog_sql(source) +
+             empty_records_guard(names) + 'ROLLBACK;')
+        before_managed = json.loads(psql(connection, password, restore_plan.context_sql()))['managed_snapshot']
+        sql = rehearsal_sql(source)
     elif args.action == "concurrency":
         psql(connection, password, "BEGIN READ ONLY;" + empty_records_guard(names) + "ROLLBACK;")
         # Keep the existing schedules and assertions. Only replace its local-db guard with
@@ -513,6 +525,14 @@ def main(argv=None):
     else:
         sql = state_guard(require_baseline=True) + "\n" + MIGRATION.read_text()
     psql(connection, password, sql, readonly=False)
+    if args.action == 'rehearse':
+        # A fresh connection proves rollback completed; no automatic recovery.
+        psql(connection, password, 'BEGIN READ ONLY;' + assert_catalog_sql(source) +
+             empty_records_guard(names) + 'ROLLBACK;')
+        after_managed = json.loads(psql(connection, password, restore_plan.context_sql()))['managed_snapshot']
+        if before_managed != after_managed:
+            raise ValueError('Managed state changed during rehearsal; stop and investigate')
+        print('Independent post-rollback baseline, empty records and managed-state checks passed')
     print(args.action + " completed on development only" + ("; schema and test records rolled back" if args.action == "rehearse" else ""))
 
 
