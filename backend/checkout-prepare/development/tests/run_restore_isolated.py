@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Actual PRIVATE baseline in network-disabled disposable PostgreSQL; never hosted.
 Run in existing export Codespace. Full output stays private, only PASS labels escape.
-No checkout migration, payment function or order-finalization invocation.
+Optional checkout migration rehearsal is isolated and rolled back. Never invokes
+payment functions or order finalization.
 """
 import json
 import argparse
@@ -120,7 +121,7 @@ def main():
                 raise AssertionError('Rehearsal retained auth fixture')
             print('PASS: actual private baseline migration and checkout suite; full rollback, auth/profile cleanup and managed stand-ins unchanged',flush=True)
         transcript.append('PASS: all isolated restoration checks. Skipped reviewed managed DDL: '+str(skipped))
-        print('LIMIT: auth.uid and managed auth schema are isolated stand-ins; hosted restore remains unexecuted.',flush=True)
+        print('LIMIT: Auth schema/services and managed extensions are not fully reproduced; no hosted rehearsal executed.',flush=True)
     finally:
         run(['docker','rm','--force',name],check=False)
         d.write_private(report,'\n'.join(transcript)+'\n')

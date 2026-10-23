@@ -1,4 +1,9 @@
-> Current restoration instructions: [RESTORATION_REVIEW.md](RESTORATION_REVIEW.md).
+> Current Phase 4 checkpoint: [REHEARSAL_REVIEW.md](REHEARSAL_REVIEW.md).
+> The baseline has since been restored and independently verified on Development.
+> Historical setup notes below do not authorize another restoration. Hosted
+> rehearsal and permanent migration still require separate approval.
+>
+> Prior restoration instructions: [RESTORATION_REVIEW.md](RESTORATION_REVIEW.md).
 > The exact private schema export has now passed isolated PostgreSQL restoration
 > tests with the permission corrections and reviewed auth attachment. Hosted
 > restoration is NOT authorized or executed. The earlier preparation notes below
