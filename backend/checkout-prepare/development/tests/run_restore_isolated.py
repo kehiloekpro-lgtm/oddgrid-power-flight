@@ -110,7 +110,7 @@ def main():
         if args.rehearse:
             # Hosted auth.uid definition inspected read-only, reproduced here solely
             # for synthetic JWT claims. No real Auth service or credentials exist.
-            sql("CREATE OR REPLACE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql STABLE AS $$ SELECT coalesce(nullif(current_setting('request.jwt.claim.sub',true),''),(nullif(current_setting('request.jwt.claims',true),'')::jsonb->>'sub'))::uuid $$; GRANT INSERT ON auth.users TO postgres;")
+            sql("CREATE OR REPLACE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql STABLE AS $$ SELECT coalesce(nullif(current_setting('request.jwt.claim.sub',true),''),(nullif(current_setting('request.jwt.claims',true),'')::jsonb->>'sub'))::uuid $$; GRANT INSERT ON auth.users TO postgres; GRANT service_role TO postgres;")
             managed_before=json.loads(sql(r.context_sql(),user='postgres').stdout)['managed_snapshot']
             sql(d.rehearsal_sql(source),user='postgres')
             sql('BEGIN READ ONLY;'+d.assert_catalog_sql(source)+d.empty_records_guard(['private','public'])+'ROLLBACK;',user='postgres')
