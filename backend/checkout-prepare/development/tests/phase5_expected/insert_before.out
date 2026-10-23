@@ -1,0 +1,15 @@
+Parsed test spec with 2 sessions
+
+starting permutation: edit_begin insert_item first_begin first_prepare edit_commit first_commit
+step edit_begin: BEGIN;
+step insert_item: INSERT INTO public.cart_items(cart_id,product_id,quantity) VALUES ('a3000000-0000-4000-8000-000000000001','a1000000-0000-4000-8000-000000000001',1);
+step first_begin: BEGIN;
+step first_prepare: SELECT public.checkout_prepare_bridge('a3000000-0000-4000-8000-000000000001','fixture@example.test',NULL,'Fixture',NULL,'Fixture',NULL,'Fixture',NULL,NULL,'US','a5000000-0000-4000-8000-000000000001','a4000000-0000-4000-8000-000000000001') IS NOT NULL AS prepared; <waiting ...>
+step edit_commit: COMMIT;
+step first_prepare: <... completed>
+prepared
+--------
+t       
+(1 row)
+
+step first_commit: COMMIT;

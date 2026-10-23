@@ -1,0 +1,11 @@
+Parsed test spec with 2 sessions
+
+starting permutation: price_begin unavailable first_begin first_prepare price_commit first_commit
+step price_begin: BEGIN;
+step unavailable: UPDATE public.product_variants SET availability='available_to_order' WHERE id='a2000000-0000-4000-8000-000000000001';
+step first_begin: BEGIN;
+step first_prepare: SELECT public.checkout_prepare_bridge('a3000000-0000-4000-8000-000000000001','fixture@example.test',NULL,'Fixture',NULL,'Fixture',NULL,'Fixture',NULL,NULL,'US','a5000000-0000-4000-8000-000000000001','a4000000-0000-4000-8000-000000000001') IS NOT NULL AS prepared; <waiting ...>
+step price_commit: COMMIT;
+step first_prepare: <... completed>
+ERROR:  Cart contains invalid or unavailable products
+step first_commit: COMMIT;

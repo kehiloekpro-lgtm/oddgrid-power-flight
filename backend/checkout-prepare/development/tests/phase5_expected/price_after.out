@@ -1,0 +1,15 @@
+Parsed test spec with 2 sessions
+
+starting permutation: first_begin first_prepare price_begin price_update first_commit price_commit
+step first_begin: BEGIN;
+step first_prepare: SELECT public.checkout_prepare_bridge('a3000000-0000-4000-8000-000000000001','fixture@example.test',NULL,'Fixture',NULL,'Fixture',NULL,'Fixture',NULL,NULL,'US','a5000000-0000-4000-8000-000000000001','a4000000-0000-4000-8000-000000000001') IS NOT NULL AS prepared;
+prepared
+--------
+t       
+(1 row)
+
+step price_begin: BEGIN;
+step price_update: UPDATE public.product_variants SET selling_price=400 WHERE id='a2000000-0000-4000-8000-000000000001'; <waiting ...>
+step first_commit: COMMIT;
+step price_update: <... completed>
+step price_commit: COMMIT;
