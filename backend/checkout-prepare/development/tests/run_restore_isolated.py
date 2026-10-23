@@ -21,7 +21,11 @@ def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--rehearse', action='store_true', help='Also run the existing rollback-only checkout suite in this disposable database')
     parser.add_argument('--prepare-migration',action='store_true',help='Generate private expected catalogue and test permanent migration only in this disposable database')
+    parser.add_argument('--phase5',action='store_true',help='Post-migration functional and real multi-session isolationtester tests, never hosted')
+    parser.add_argument('--generate-phase5-expected',action='store_true',help='Record synthetic isolationtester transcripts in this disposable database only')
     args=parser.parse_args()
+    if args.phase5: args.prepare_migration=True
+    if args.generate_phase5_expected and not args.phase5: raise ValueError('Isolated phase5 required')
     folder = Path.home()/'oddgrid-schema-private'
     d.verify_private_bundle(folder)
     raw, manifest = d.read_bundle(folder)
@@ -179,6 +183,19 @@ def main():
             if not path.exists(): d.write_private(path,json.dumps(wanted,sort_keys=True,separators=(',',':')))
             print('PASS: isolated permanent commit, independent full-definition/effective-ACL verifier, repeat rejection and managed-state preservation',flush=True)
             print('EXPECTED_CATALOG_SHA256: '+mp.digest(wanted),flush=True)
+        if args.phase5:
+            import phase5_plan as p5
+            sql("CREATE OR REPLACE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql STABLE AS $$ SELECT coalesce(nullif(current_setting('request.jwt.claim.sub',true),''),(nullif(current_setting('request.jwt.claims',true),'')::jsonb->>'sub'))::uuid $$; GRANT INSERT ON auth.users TO postgres; GRANT service_role TO postgres;")
+            sql(p5.functional(wanted),user='postgres')
+            sql(mp.verify_sql(d,wanted),user='postgres')
+            if sql('SELECT count(*) FROM auth.users;').stdout.strip()!='0': raise AssertionError('Auth fixture remains')
+            print('PASS: existing functional suite plus actual staff/admin/customer helper assertions; rollback verified',flush=True)
+            def tester(spec):
+                return run(['docker','exec','-i',name,p5.TESTER,'dbname=postgres user=postgres'],spec,check=False)
+            def record(case,output): transcript.append('SCHEDULE '+case+'\n'+output)
+            p5.run_schedules(tester,lambda q:sql(q,user='postgres'),wanted,d.state_guard(require_baseline=True),record,args.generate_phase5_expected)
+            sql(mp.verify_sql(d,wanted),user='postgres')
+            print('PASS: all real multi-session schedules and deterministic cleanup; empty migrated catalogue retained',flush=True)
         transcript.append('PASS: all isolated restoration checks. Skipped reviewed managed DDL: '+str(skipped))
         print('LIMIT: Auth schema/services and managed extensions are not fully reproduced; no hosted rehearsal executed.',flush=True)
     finally:
