@@ -306,3 +306,45 @@ test("a successful write followed by a failed refresh never invites an automatic
   assert.equal(s.guestCartCount(s.getGuestCartSnapshot()), 0);
   assert.equal(calls.filter((c) => c.action === "update_quantity").length, 1);
 });
+
+test("selected variant UUID is sent without any browser price", async () => {
+  const { service: s, calls } = await fixture();
+  const variant = {
+    id: uuid(81),
+    product_id: product.id,
+    variant_name: "Extended",
+    sku: "V",
+    currency: product.currency,
+    selling_price: 325.5,
+    availability: "confirmed_available",
+    is_active: true,
+  };
+  await s.addProductToGuestCart(product, variant);
+  const body = calls.find((c) => c.action === "add_item");
+  assert.equal(body.variant_id, variant.id);
+  assert.equal(body.product_id, product.id);
+  assert.equal("selling_price" in body, false);
+  assert.equal("total_amount" in body, false);
+});
+test("invalid selection never reaches cart API or falls back to parent price", async () => {
+  const { service: s, calls } = await fixture();
+  const variant = {
+    id: uuid(81),
+    product_id: product.id,
+    variant_name: "Extended",
+    sku: "V",
+    currency: product.currency,
+    selling_price: 325.5,
+    availability: "confirmed_available",
+    is_active: true,
+  };
+  for (const patch of [
+    { product_id: uuid(99) },
+    { is_active: false },
+    { selling_price: null },
+    { currency: "ZAR" },
+    { availability: "out_of_stock" },
+  ])
+    await assert.rejects(s.addProductToGuestCart(product, { ...variant, ...patch }));
+  assert.equal(calls.length, 0);
+});

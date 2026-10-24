@@ -31,7 +31,7 @@ const guestUrl = dataUrl(
   'export const getGuestCartCredentialsForCheckout=()=>null; export const getGuestCartSnapshot=()=>({status:"idle"});',
 );
 const configUrl = dataUrl(
-  'export const SUPABASE_URL="https://example.test"; export const SUPABASE_PUBLISHABLE_KEY="test-public-key";',
+  'export const DEVELOPMENT_PURCHASING=false; export const SUPABASE_URL="https://example.test"; export const SUPABASE_PUBLISHABLE_KEY="test-public-key";',
 );
 const { createCheckoutPreparationClient, prepareGuestCheckout } = await import(
   dataUrl(
@@ -460,7 +460,8 @@ test("checkout code has no executable payment or finalization paths; default Edg
     );
   assert.match(source("backend/checkout-prepare/index.ts"), /enabled: false/);
   assert.match(source("backend/checkout-prepare/index.ts"), /backend: null/);
-  assert.match(source("src/routes/checkout.tsx"), /import.meta.env.DEV/);
+  assert.match(source("src/routes/checkout.tsx"), /DEVELOPMENT_PURCHASING/);
+  assert.match(source("src/lib/supabase-config.ts"), /import.meta.env.DEV/);
 });
 
 test("cart changes during an in-flight checkout discard its response", async () => {

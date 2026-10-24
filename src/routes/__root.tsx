@@ -12,6 +12,7 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import { DEVELOPMENT_PURCHASING } from "@/lib/supabase-config";
 import { Header } from "@/components/site/Header";
 import { Footer } from "@/components/site/Footer";
 import { Toaster } from "@/components/ui/sonner";
@@ -145,6 +146,14 @@ function RootComponent() {
         <div className="flex min-h-screen w-full flex-col">
           <Header />
           <main className="flex-1 pt-20">
+            {DEVELOPMENT_PURCHASING && (
+              <p
+                role="status"
+                className="border-b border-amber-500 bg-amber-950 px-4 py-3 text-center text-sm text-amber-100"
+              >
+                ODDGRID DEVELOPMENT · Synthetic test inventory · No payments or real orders
+              </p>
+            )}
             {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
             <Outlet />
           </main>
