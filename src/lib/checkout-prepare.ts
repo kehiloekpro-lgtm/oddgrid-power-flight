@@ -7,7 +7,7 @@ import {
   type PreparedCheckout,
 } from "./checkout-contract";
 import { getGuestCartCredentialsForCheckout, getGuestCartSnapshot } from "./guest-cart";
-import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from "./supabase-config";
+import { DEVELOPMENT_PURCHASING, SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from "./supabase-config";
 
 interface CheckoutClientOptions {
   development: boolean;
@@ -130,8 +130,8 @@ export function createCheckoutPreparationClient(options: CheckoutClientOptions) 
   };
 }
 export const prepareGuestCheckout = createCheckoutPreparationClient({
-  development: import.meta.env.DEV,
-  contractReviewed: CHECKOUT_CONTRACT_REVIEWED,
+  development: DEVELOPMENT_PURCHASING,
+  contractReviewed: CHECKOUT_CONTRACT_REVIEWED || DEVELOPMENT_PURCHASING,
   endpoint: `${SUPABASE_URL}/functions/v1/checkout-prepare`,
   key: SUPABASE_PUBLISHABLE_KEY,
   credentials: getGuestCartCredentialsForCheckout,

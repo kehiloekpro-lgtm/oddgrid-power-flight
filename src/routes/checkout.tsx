@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useGuestCart } from "@/hooks/use-guest-cart";
 import { refreshGuestCart } from "@/lib/guest-cart";
+import { DEVELOPMENT_PURCHASING } from "@/lib/supabase-config";
 import { prepareGuestCheckout } from "@/lib/checkout-prepare";
 import {
   CHECKOUT_CONTRACT_REVIEWED,
@@ -93,9 +94,11 @@ function CheckoutPage() {
         Back to cart
       </Link>
       <p role="status" className="glass my-6 rounded-2xl p-6">
-        Checkout is not available yet. No orders or payments are being accepted.
+        {DEVELOPMENT_PURCHASING
+          ? "Development checkout test. Synthetic inventory only. No orders or payments are accepted."
+          : "Checkout is not available yet. No orders or payments are being accepted."}
       </p>
-      {import.meta.env.DEV && (
+      {DEVELOPMENT_PURCHASING && (
         <>
           {(status === "idle" || status === "loading") && (
             <p role="status">Loading your guest cart…</p>
@@ -147,7 +150,9 @@ function CheckoutPage() {
               </p>
               <form onSubmit={submit} className="mt-8">
                 <fieldset
-                  disabled={!CHECKOUT_CONTRACT_REVIEWED || submitting || busy}
+                  disabled={
+                    !(CHECKOUT_CONTRACT_REVIEWED || DEVELOPMENT_PURCHASING) || submitting || busy
+                  }
                   className="grid gap-4 sm:grid-cols-2"
                 >
                   <legend className="mb-4 text-xl font-semibold">

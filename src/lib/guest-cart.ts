@@ -1,7 +1,8 @@
 import { DEMO_REFRIGERATOR, SUPABASE_PUBLISHABLE_KEY, SUPABASE_URL } from "./supabase-config";
 import {
   getCartCatalogueDetails,
-  isPurchasable,
+  isPurchasableSelection,
+  type PublicProductVariant,
   type PublicSupabaseProduct,
 } from "./supabase-products";
 
@@ -26,7 +27,10 @@ export type CartSnapshot = {
   message: string | null;
   detailsUnavailable: boolean;
 };
-const STORAGE_KEY = "oddgrid-guest-cart";
+const STORAGE_KEY =
+  SUPABASE_URL === "https://ogbnpvroaafgpnlxeftw.supabase.co"
+    ? "oddgrid-development-guest-cart"
+    : "oddgrid-guest-cart";
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const initial: CartSnapshot = {
   status: "idle",
@@ -263,9 +267,13 @@ function verifyWrite(
     throw new Error("Could not confirm the cart change. Refresh the cart before trying again.");
   }
 }
-export async function addProductToGuestCart(product: PublicSupabaseProduct): Promise<void> {
+export async function addProductToGuestCart(
+  product: PublicSupabaseProduct,
+  variant?: PublicProductVariant | null,
+): Promise<void> {
   if (
-    !isPurchasable(product) ||
+    !isPurchasableSelection(product, variant) ||
+    (variant != null && !uuid.test(variant.id)) ||
     !uuid.test(product.id) ||
     product.id === DEMO_REFRIGERATOR.id ||
     product.slug === DEMO_REFRIGERATOR.slug
@@ -306,7 +314,13 @@ export async function addProductToGuestCart(product: PublicSupabaseProduct): Pro
     if (!sameCart(credentials))
       throw new Error("Your cart session changed. Refresh the cart to continue.");
     const result = await cartRequest(
-      { action: "add_item", ...credentials, product_id: product.id, quantity: 1 },
+      {
+        action: "add_item",
+        ...credentials,
+        product_id: product.id,
+        ...(variant ? { variant_id: variant.id } : {}),
+        quantity: 1,
+      },
       true,
     );
     verifyWrite(result, "add_item");

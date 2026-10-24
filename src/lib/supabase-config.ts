@@ -10,6 +10,9 @@ export const SUPABASE_URL = storefrontSupabaseUrl(
 export const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as
   string | undefined;
 
+export const DEVELOPMENT_PURCHASING =
+  import.meta.env.DEV && SUPABASE_URL === "https://ogbnpvroaafgpnlxeftw.supabase.co";
+
 /** Demo product is draft and must never be treated as purchasable. */
 export const DEMO_REFRIGERATOR = {
   id: "a0119f06-dc03-405e-92bb-def23ad7d3e8",

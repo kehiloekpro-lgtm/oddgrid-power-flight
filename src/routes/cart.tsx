@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { DEVELOPMENT_PURCHASING } from "@/lib/supabase-config";
 import { useGuestCart } from "@/hooks/use-guest-cart";
 import { refreshGuestCart, removeGuestCartItem, updateGuestCartQuantity } from "@/lib/guest-cart";
 
@@ -147,8 +148,8 @@ function CartPage() {
                 ))}
               </ul>
               <p className="mt-6 text-sm text-muted-foreground">
-                Prices are read from the catalogue. Cart totals, shipping and final pricing are not
-                available here yet.
+                Prices are read from the catalogue. Final amounts require server confirmation during
+                checkout preparation.
               </p>
             </>
           )}
@@ -158,16 +159,27 @@ function CartPage() {
             </p>
           )}
           <div className="mt-8 border-t border-border pt-6">
-            <button type="button" disabled className="rounded-xl bg-secondary px-6 py-3 opacity-60">
-              Checkout unavailable
-            </button>
-            {import.meta.env.DEV && (
-              <Link to="/checkout" className="ml-4 text-sm text-primary underline">
+            {!DEVELOPMENT_PURCHASING && (
+              <button
+                type="button"
+                disabled
+                className="rounded-xl bg-secondary px-6 py-3 opacity-60"
+              >
+                Checkout unavailable
+              </button>
+            )}
+            {DEVELOPMENT_PURCHASING && (
+              <Link
+                to="/checkout"
+                className="inline-block rounded-xl bg-primary px-6 py-3 text-primary-foreground"
+              >
                 Review checkout preparation
               </Link>
             )}
             <p className="mt-3 text-sm text-muted-foreground">
-              Checkout is not yet available. No orders or payments are being accepted.
+              {DEVELOPMENT_PURCHASING
+                ? "Development test only. Checkout preparation cannot place an order or initiate payment."
+                : "Checkout is not yet available. No orders or payments are being accepted."}
             </p>
           </div>
         </>
