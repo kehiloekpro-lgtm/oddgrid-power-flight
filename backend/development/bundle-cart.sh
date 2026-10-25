@@ -8,7 +8,8 @@ out=$(cd -- "$out" && pwd)
 umask 077
 # Keep npm packages native: Deno 2.5.4 inlining produces invalid tslib CJS/ESM
 # interop. Supabase's module resolver must receive the pinned npm import.
-deno bundle --no-config --no-lock --platform deno --packages external \
+deno bundle --no-config --no-lock --platform deno \
+  --external npm:@supabase/supabase-js@2.108.0 \
   --output "$out/cart-api.js" "$root/backend/development/cart-index.ts"
 grep -F 'npm:@supabase/supabase-js@2.108.0' "$out/cart-api.js" >/dev/null
 if grep -q 'import_tslib.default' "$out/cart-api.js"; then
