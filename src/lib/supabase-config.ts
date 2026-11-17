@@ -1,6 +1,11 @@
 /** Public Supabase configuration. Never place secret or service-role keys here. */
 import { storefrontSupabaseUrl } from "./storefront-environment";
-
+/**
+ * True for the local dev server, or for a build explicitly marked as the Development sandbox
+ * staging copy (VITE_ODDGRID_STAGING=development-sandbox).
+ */
+export const DEVELOPMENT_PREVIEW =
+  import.meta.env.DEV || import.meta.env.VITE_ODDGRID_STAGING === "development-sandbox";
 export const SUPABASE_URL = storefrontSupabaseUrl(
   import.meta.env.DEV,
   import.meta.env.VITE_ODDGRID_DEVELOPMENT_SUPABASE_URL,
