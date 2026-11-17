@@ -7,7 +7,7 @@ import { storefrontSupabaseUrl } from "./storefront-environment";
 export const DEVELOPMENT_PREVIEW =
   import.meta.env.DEV || import.meta.env.VITE_ODDGRID_STAGING === "development-sandbox";
 export const SUPABASE_URL = storefrontSupabaseUrl(
-  import.meta.env.DEV,
+  DEVELOPMENT_PREVIEW,
   import.meta.env.VITE_ODDGRID_DEVELOPMENT_SUPABASE_URL,
 );
 
