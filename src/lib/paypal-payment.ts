@@ -35,7 +35,8 @@ export interface PaymentStatus {
 }
 
 async function callPaypalFunction(body: Record<string, string>): Promise<Record<string, unknown>> {
-  if (!import.meta.env.DEV) throw new Error("Sandbox payments are not available.");
+    if (!(import.meta.env.DEV || import.meta.env.VITE_ODDGRID_STAGING === "development-sandbox"))
+    throw new Error("Sandbox payments are not available.");
 
   const key = process.env.ODDGRID_PAYPAL_APPLICATION_KEY;
 
