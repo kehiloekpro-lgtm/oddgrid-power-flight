@@ -16,7 +16,7 @@ export const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABL
   string | undefined;
 
 export const DEVELOPMENT_PURCHASING =
-  import.meta.env.DEV && SUPABASE_URL === "https://ogbnpvroaafgpnlxeftw.supabase.co";
+  DEVELOPMENT_PREVIEW && SUPABASE_URL === "https://ogbnpvroaafgpnlxeftw.supabase.co";
 
 /** Demo product is draft and must never be treated as purchasable. */
 export const DEMO_REFRIGERATOR = {
